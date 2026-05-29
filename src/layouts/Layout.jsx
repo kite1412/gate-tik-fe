@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'motion/react';
-import { Bell, Menu, Moon, Sun } from 'lucide-react';
+import { Menu, Moon, Sun } from 'lucide-react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { Sidebar } from '../components/Sidebar';
 import { useAuth } from '../contexts/useAuth';
@@ -113,7 +113,7 @@ export default function Layout() {
             >
               {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </button>
-            <button
+            {/* <button
               className={`relative grid h-9 w-9 place-items-center rounded-xl border ${
                 dark
                   ? 'border-white/10 bg-white/5 hover:bg-white/10'
@@ -122,7 +122,7 @@ export default function Layout() {
             >
               <Bell className="h-4 w-4" />
               <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-red-500" />
-            </button>
+            </button> */}
             <span
               className={`hidden rounded-full px-3 py-1 text-[11px] uppercase tracking-wider sm:inline ${
                 dark ? 'bg-blue-500/20 text-blue-300' : 'bg-blue-500/10 text-blue-700'
