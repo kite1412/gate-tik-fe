@@ -453,15 +453,6 @@ function SectionTitle({ dark, icon, tone, title, subtitle }) {
 }
 
 function ReadonlyInfo({ dark, label, value, icon: Icon, badge, status }) {
-  const statusClass =
-    status === 'active'
-      ? dark
-        ? 'bg-emerald-500/30 text-emerald-300'
-        : 'bg-emerald-500/20 text-emerald-700'
-      : dark
-        ? 'bg-red-500/30 text-red-300'
-        : 'bg-red-500/20 text-red-700';
-
   return (
     <div>
       <label className={`mb-2 block text-sm ${dark ? 'text-slate-300' : 'text-blue-900/80'}`}>
@@ -480,17 +471,6 @@ function ReadonlyInfo({ dark, label, value, icon: Icon, badge, status }) {
           />
         ) : null}
         <span className="capitalize">{value}</span>
-        <span
-          className={`rounded-full px-2.5 py-0.5 text-xs uppercase ${
-            status
-              ? statusClass
-              : dark
-                ? 'bg-blue-500/30 text-blue-300'
-                : 'bg-blue-500/20 text-blue-700'
-          }`}
-        >
-          {badge}
-        </span>
       </div>
     </div>
   );
