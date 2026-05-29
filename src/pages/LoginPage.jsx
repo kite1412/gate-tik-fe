@@ -157,18 +157,6 @@ export default function LoginPage() {
                 }`}
               />
             </button>
-
-            <p
-              className={`pt-2 text-center text-xs ${dark ? 'text-white/50' : 'text-blue-900/50'}`}
-            >
-              Don't have an account?{' '}
-              <a className={`hover:underline ${dark ? 'text-blue-300' : 'text-blue-600'}`} href="#">
-                Register
-              </a>
-            </p>
-            <p className={`text-center text-[11px] ${dark ? 'text-white/30' : 'text-blue-900/40'}`}>
-              Hint: try <code>admin@</code>, <code>staff@</code>, or <code>student@</code>
-            </p>
           </form>
         </motion.div>
       </div>
