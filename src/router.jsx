@@ -10,7 +10,7 @@ import CCTVPage from './pages/CCTVPage';
 import ParkingPage from './pages/ParkingPage';
 import IntercomPage from './pages/IntercomPage';
 import LogsPage from './pages/LogsPage';
-import ProfilePage from './pages/ProfiePage';
+import ProfilePage from './pages/ProfilePage';
 import NotFoundPage from './pages/NotFoundPage';
 
 export const router = createBrowserRouter([
