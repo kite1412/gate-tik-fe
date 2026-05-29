@@ -511,7 +511,12 @@ export default function DashboardPage() {
               ) : (
                 recentLogs.map((entry) => {
                   const timestamp = entry?.created_at ? formatDate(entry.created_at) : '-';
-                  const isSuccess = entry?.access_status === 'success';
+                  const statusClass = {
+                    success: 'bg-emerald-500/15 text-emerald-500',
+                    pending: 'bg-amber-500/15 text-amber-500',
+                    failed: 'bg-red-500/15 text-red-500',
+                  };
+
                   return (
                     <tr key={entry.id} className="hover:bg-current/3">
                       <td className="py-3">{entry?.user?.full_name || '-'}</td>
@@ -521,9 +526,7 @@ export default function DashboardPage() {
                       <td className="py-3">
                         <span
                           className={`rounded-full px-2 py-0.5 text-xs capitalize ${
-                            isSuccess
-                              ? 'bg-emerald-500/15 text-emerald-500'
-                              : 'bg-red-500/15 text-red-500'
+                            statusClass[entry?.access_status]
                           }`}
                         >
                           {entry?.access_status || '-'}
