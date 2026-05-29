@@ -143,8 +143,8 @@ export function Sidebar({ dark, user, onLogout, isOpen, onClose }) {
             >
               <div className="mb-6 flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
-                  <div className="grid h-9 w-9 place-items-center rounded-xl bg-linear-to-br from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/30">
-                    <Shield className="h-4 w-4" />
+                  <div className="p-1 grid h-9 w-9 place-items-center rounded-xl bg-linear-to-br from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/30">
+                    <img src="/app-icon.svg" alt="Logo" />
                   </div>
                   <div>
                     <p className="tracking-tight">{import.meta.env.VITE_APP_NAME}</p>
