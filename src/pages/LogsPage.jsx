@@ -81,20 +81,37 @@ export default function LogsPage() {
 
   const chartData = useMemo(() => {
     if (!chartLogs.length) return initialChartData;
-    const hours = Array.from({ length: 24 }).map((_, i) => ({
-      id: `hour-${i}`,
-      hour: `${i.toString().padStart(2, '0')}:00`,
-      access: 0,
-    }));
+    const now = new Date();
+    const buckets = Array.from({ length: 24 }).map((_, index) => {
+      const bucketDate = new Date(now);
+      bucketDate.setMinutes(0, 0, 0);
+      bucketDate.setHours(bucketDate.getHours() - (23 - index));
+      return {
+        id: `hour-${index}`,
+        ts: bucketDate.getTime(),
+        hour: `${bucketDate.getHours().toString().padStart(2, '0')}:00`,
+        access: 0,
+      };
+    });
+
+    const startTs = buckets[0].ts;
+    const endTs = buckets[buckets.length - 1].ts + 60 * 60 * 1000;
+
     chartLogs.forEach((entry) => {
       if (!entry?.created_at) return;
-      const date = new Date(entry.created_at);
-      const hour = date.getHours();
-      if (!Number.isNaN(hour) && hours[hour]) {
-        hours[hour].access += 1;
+      const ts = new Date(entry.created_at).getTime();
+      if (Number.isNaN(ts) || ts < startTs || ts >= endTs) return;
+      const bucketIndex = Math.floor((ts - startTs) / (60 * 60 * 1000));
+      if (bucketIndex >= 0 && bucketIndex < buckets.length) {
+        buckets[bucketIndex].access += 1;
       }
     });
-    return hours;
+
+    return buckets.map((bucket) => ({
+      id: bucket.id,
+      hour: bucket.hour,
+      access: bucket.access,
+    }));
   }, [chartLogs]);
 
   const perPageValue = pagination?.per_page ?? perPage;
