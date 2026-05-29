@@ -6,7 +6,6 @@ import {
   Users,
   ScrollText,
   PhoneCall,
-  Shield,
   LogOut,
   X,
 } from 'lucide-react';

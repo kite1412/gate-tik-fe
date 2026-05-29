@@ -452,7 +452,7 @@ function SectionTitle({ dark, icon, tone, title, subtitle }) {
   );
 }
 
-function ReadonlyInfo({ dark, label, value, icon: Icon, badge, status }) {
+function ReadonlyInfo({ dark, label, value, icon: Icon }) {
   return (
     <div>
       <label className={`mb-2 block text-sm ${dark ? 'text-slate-300' : 'text-blue-900/80'}`}>
