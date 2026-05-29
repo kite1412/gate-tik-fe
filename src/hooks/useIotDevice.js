@@ -16,7 +16,7 @@ export function useIotDevice({ auto = true } = {}) {
       setIotDevice(data);
       return data;
     } catch (err) {
-      setError(err?.message || 'Gagal memuat data IoT device.');
+      setError(err?.message || 'Failed to fetch IoT device data.');
       throw err;
     } finally {
       setLoading(false);
