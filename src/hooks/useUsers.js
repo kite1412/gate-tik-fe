@@ -34,7 +34,7 @@ export function useUsers({
       setUsers(Array.isArray(list) ? list : []);
       setPagination(payload?.pagination ?? response?.pagination ?? null);
     } catch (err) {
-      setError(err?.message || 'Gagal memuat data users.');
+      setError(err?.message || 'Failed to fetch users.');
     } finally {
       setLoading(false);
     }

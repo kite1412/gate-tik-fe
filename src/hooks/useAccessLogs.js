@@ -52,7 +52,7 @@ export function useAccessLogs({
         setLastOpened(lastOpenedData);
       }
     } catch (err) {
-      setError(err?.message || 'Gagal memuat access logs.');
+      setError(err?.message || 'Failed to fetch access logs.');
     } finally {
       setLoading(false);
     }
@@ -68,38 +68,19 @@ export function useAccessLogs({
     includeLastOpened,
   ]);
 
-  const fetchAllLogs = useCallback(async ({
-    perPage: allPerPage = 200,
-    sortOrder: allSortOrder = 'desc',
-    period: allPeriod,
-    accessStatus: allAccessStatus,
-    accessMethod: allAccessMethod,
-    action: allAction,
-    search: allSearch,
-  } = {}) => {
-    const first = await api.get('/api/access-logs', {
-      params: {
-        page: 1,
-        per_page: allPerPage,
-        sort_order: allSortOrder,
-        period: allPeriod || undefined,
-        access_status: allAccessStatus || undefined,
-        access_method: allAccessMethod || undefined,
-        action: allAction || undefined,
-        search: allSearch || undefined,
-      },
-    });
-
-    const firstPayload = first?.data ?? first;
-    const firstList = firstPayload?.data ?? firstPayload ?? [];
-    const totalRecords = firstPayload?.pagination?.total ?? first?.pagination?.total ?? 0;
-    const totalPages = totalRecords ? Math.ceil(totalRecords / allPerPage) : 1;
-    const allLogs = Array.isArray(firstList) ? [...firstList] : [];
-
-    for (let i = 2; i <= totalPages; i += 1) {
-      const response = await api.get('/api/access-logs', {
+  const fetchAllLogs = useCallback(
+    async ({
+      perPage: allPerPage = 200,
+      sortOrder: allSortOrder = 'desc',
+      period: allPeriod,
+      accessStatus: allAccessStatus,
+      accessMethod: allAccessMethod,
+      action: allAction,
+      search: allSearch,
+    } = {}) => {
+      const first = await api.get('/api/access-logs', {
         params: {
-          page: i,
+          page: 1,
           per_page: allPerPage,
           sort_order: allSortOrder,
           period: allPeriod || undefined,
@@ -109,15 +90,37 @@ export function useAccessLogs({
           search: allSearch || undefined,
         },
       });
-      const payload = response?.data ?? response;
-      const list = payload?.data ?? payload ?? [];
-      if (Array.isArray(list)) {
-        allLogs.push(...list);
-      }
-    }
 
-    return allLogs;
-  }, []);
+      const firstPayload = first?.data ?? first;
+      const firstList = firstPayload?.data ?? firstPayload ?? [];
+      const totalRecords = firstPayload?.pagination?.total ?? first?.pagination?.total ?? 0;
+      const totalPages = totalRecords ? Math.ceil(totalRecords / allPerPage) : 1;
+      const allLogs = Array.isArray(firstList) ? [...firstList] : [];
+
+      for (let i = 2; i <= totalPages; i += 1) {
+        const response = await api.get('/api/access-logs', {
+          params: {
+            page: i,
+            per_page: allPerPage,
+            sort_order: allSortOrder,
+            period: allPeriod || undefined,
+            access_status: allAccessStatus || undefined,
+            access_method: allAccessMethod || undefined,
+            action: allAction || undefined,
+            search: allSearch || undefined,
+          },
+        });
+        const payload = response?.data ?? response;
+        const list = payload?.data ?? payload ?? [];
+        if (Array.isArray(list)) {
+          allLogs.push(...list);
+        }
+      }
+
+      return allLogs;
+    },
+    [],
+  );
 
   useEffect(() => {
     if (!auto) return;

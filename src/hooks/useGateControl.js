@@ -16,17 +16,14 @@ export function useGateControl() {
         },
       });
     } catch (err) {
-      setError(err?.message || 'Gagal mengirim perintah gate.');
+      setError(err?.message || 'Failed to send gate control request.');
       throw err;
     } finally {
       setLoading(false);
     }
   }, []);
 
-  const openGate = useCallback(
-    (payload) => requestGate('/api/gate/open', payload),
-    [requestGate],
-  );
+  const openGate = useCallback((payload) => requestGate('/api/gate/open', payload), [requestGate]);
 
   const closeGate = useCallback(
     (payload) => requestGate('/api/gate/close', payload),

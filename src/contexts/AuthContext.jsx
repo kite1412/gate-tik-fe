@@ -41,7 +41,7 @@ export function AuthProvider({ children }) {
       clearStoredAuth();
       setToken(null);
       setUser(null);
-      throw new Error('Akun ini tidak memiliki akses admin.');
+      throw new Error('Forbidden: User does not have admin access.');
     }
 
     setToken(payload?.token ?? null);
@@ -61,13 +61,16 @@ export function AuthProvider({ children }) {
     }
   };
 
-  const updateUser = useCallback((nextUser) => {
-    setUser((prev) => {
-      const merged = { ...(prev || {}), ...(nextUser || {}) };
-      setStoredAuth(token, merged);
-      return merged;
-    });
-  }, [token]);
+  const updateUser = useCallback(
+    (nextUser) => {
+      setUser((prev) => {
+        const merged = { ...(prev || {}), ...(nextUser || {}) };
+        setStoredAuth(token, merged);
+        return merged;
+      });
+    },
+    [token],
+  );
 
   return (
     <AuthContext.Provider

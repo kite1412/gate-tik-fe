@@ -42,7 +42,7 @@ export function useProfile({ auto = true } = {}) {
       }
       return data;
     } catch (err) {
-      setError(err?.message || 'Gagal memuat profile.');
+      setError(err?.message || 'Failed to fetch profile data.');
       throw err;
     } finally {
       setLoading(false);

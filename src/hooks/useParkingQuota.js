@@ -42,7 +42,7 @@ export function useParkingQuota({ auto = true } = {}) {
       }
       return data;
     } catch (err) {
-      setError(err?.message || 'Gagal memperbarui parking quota.');
+      setError(err?.message || 'Failed to update parking quota.');
       throw err;
     } finally {
       setLoading(false);
