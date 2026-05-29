@@ -260,7 +260,7 @@ export default function LogsPage() {
             </AreaChart>
           </ResponsiveContainer>
         </div>
-        {chartLoading ? <p className="mt-3 text-xs opacity-60">Memuat chart logs...</p> : null}
+        {chartLoading ? <p className="mt-3 text-xs opacity-60">Loading chart logs...</p> : null}
         {chartError ? <p className="mt-3 text-xs text-red-500">{chartError}</p> : null}
       </div>
 
@@ -361,7 +361,7 @@ export default function LogsPage() {
             {loading ? (
               <tr>
                 <td className="px-5 py-4 text-center opacity-70" colSpan={7}>
-                  Memuat access logs...
+                  Loading logs...
                 </td>
               </tr>
             ) : error ? (
@@ -373,7 +373,7 @@ export default function LogsPage() {
             ) : !logs.length ? (
               <tr>
                 <td className="px-5 py-4 text-center opacity-70" colSpan={7}>
-                  Belum ada data access log.
+                  No access log data available.
                 </td>
               </tr>
             ) : (
