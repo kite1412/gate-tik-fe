@@ -27,6 +27,7 @@ import { useTheme } from '../hooks/useTheme';
 import { useAuth } from '../contexts/useAuth';
 import { useAccessLogs } from '../hooks/useAccessLogs';
 import { useGateControl } from '../hooks/useGateControl';
+import { useIotDevice } from '../hooks/useIotDevice';
 import { useParkingQuota } from '../hooks/useParkingQuota';
 import { useUsers } from '../hooks/useUsers';
 import { formatDate } from '../utils/formatDate';
@@ -63,28 +64,41 @@ export default function DashboardPage() {
     closeGate: sendCloseGate,
   } = useGateControl();
   const { parkingQuota, error: parkingError } = useParkingQuota();
+  const { iotDevice } = useIotDevice();
   const { pagination: userPagination } = useUsers({ status: 'active', perPage: 1 });
+  const { pagination: allUserPagination } = useUsers({ perPage: 1 });
   const parkingUsed = parkingQuota?.used_slots ?? 0;
   const parkingTotal = parkingQuota?.total_slots ?? 0;
   const parkingLabel = `${parkingUsed}/${parkingTotal}`;
   const cctvUrl = import.meta.env.VITE_API_CCTV_URL;
+  const iotDeviceStatus = iotDevice?.status || '-';
+  const iotDeviceLabel =
+    iotDeviceStatus === '-'
+      ? '-'
+      : iotDeviceStatus.charAt(0).toUpperCase() + iotDeviceStatus.slice(1);
+  const iotDeviceDelta = iotDevice?.device_name || 'Gate Ctrl';
 
   const pct = parkingTotal ? Math.round((parkingUsed / parkingTotal) * 100) : 0;
   const activeUsersTotal = userPagination?.total ?? 0;
+  const allUsersTotal = allUserPagination?.total ?? 0;
   const gateTriggersTotal = accessPagination?.total ?? logs.length;
+  const successLogsCount = logs.filter((entry) => entry?.access_status === 'success').length;
+  const gateTriggerSuccessRate = logs.length
+    ? Math.round((successLogsCount / logs.length) * 100)
+    : 0;
 
   const stats = [
     {
       label: 'Active Users',
       value: activeUsersTotal,
-      delta: '+4.2%',
+      delta: `Total ${allUsersTotal}`,
       icon: <Users className="h-5 w-5" />,
       tone: 'blue',
     },
     {
       label: 'Gate Triggers',
       value: gateTriggersTotal,
-      delta: '+12%',
+      delta: `${gateTriggerSuccessRate}% success`,
       icon: <DoorOpen className="h-5 w-5" />,
       tone: 'emerald',
     },
@@ -97,8 +111,8 @@ export default function DashboardPage() {
     },
     {
       label: 'IoT Device',
-      value: 'Online',
-      delta: 'Gate Ctrl',
+      value: iotDeviceLabel,
+      delta: iotDeviceDelta,
       icon: <Cpu className="h-5 w-5" />,
       tone: 'indigo',
     },
@@ -216,7 +230,7 @@ export default function DashboardPage() {
     try {
       await sendCloseGate({
         gate_id: 1,
-        access_method: 'Web',
+        access_method: 'web',
         notes: 'Close gate requested from dashboard',
       });
       await fetchLogs();
@@ -409,9 +423,6 @@ export default function DashboardPage() {
             <div>
               <p className="text-[11px] uppercase tracking-widest opacity-60">Access Trend</p>
               <h3 className="tracking-tight">Last 24 hours</h3>
-            </div>
-            <div className="flex items-center gap-1 text-xs text-emerald-500">
-              <TrendingUp className="h-3.5 w-3.5" /> +12.4%
             </div>
           </div>
           <div className="h-56 min-h-56 w-full">
