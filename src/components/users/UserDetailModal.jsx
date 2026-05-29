@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react';
 import { X } from 'lucide-react';
 import { Modal } from './Modal';
 import { formatDate } from '../../utils/formatDate';
-import { form } from 'motion/react-client';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 

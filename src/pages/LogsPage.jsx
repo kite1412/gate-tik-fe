@@ -12,7 +12,6 @@ import {
 import { useTheme } from '../hooks/useTheme';
 import { useAccessLogs } from '../hooks/useAccessLogs';
 import { formatDate } from '../utils/formatDate';
-import { form } from 'motion/react-client';
 
 const initialChartData = Array.from({ length: 24 }).map((_, i) => ({
   id: `hour-${i}`,
