@@ -425,8 +425,8 @@ export default function DashboardPage() {
               <h3 className="tracking-tight">Last 24 hours</h3>
             </div>
           </div>
-          <div className="h-56 min-h-56 w-full">
-            <ResponsiveContainer width="100%" height="100%">
+          <div className="h-56 min-h-56 w-full min-w-0">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0}>
               <AreaChart data={chartData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
                 <defs>
                   <linearGradient id="dashboardAccessGradient" x1="0" y1="0" x2="0" y2="1">
