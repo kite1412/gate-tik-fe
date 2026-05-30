@@ -3,9 +3,7 @@ import { X } from 'lucide-react';
 import { Modal } from './Modal';
 import { formatDate } from '../../utils/formatDate';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
-
-export function UserDetailModal({ dark, open, onClose, user, token }) {
+export function UserDetailModal({ dark, open, onClose, user, fetchUserKtm }) {
   const [ktmUrl, setKtmUrl] = useState('');
   const [loadingKtm, setLoadingKtm] = useState(false);
   const [error, setError] = useState('');
@@ -23,16 +21,11 @@ export function UserDetailModal({ dark, open, onClose, user, token }) {
       try {
         setLoadingKtm(true);
         setError('');
-        const response = await fetch(`${API_BASE_URL}/api/users/${user.id}/ktm`, {
-          headers: {
-            Authorization: token ? `Bearer ${token}` : '',
-            Accept: 'image/*',
-          },
-        });
-        if (!response.ok) {
-          throw new Error('KTM not found');
+        if (typeof fetchUserKtm !== 'function') {
+          throw new Error('KTM service is not available.');
         }
-        const blob = await response.blob();
+
+        const blob = await fetchUserKtm(user.id);
         const url = URL.createObjectURL(blob);
         if (ktmUrlRef.current) {
           URL.revokeObjectURL(ktmUrlRef.current);
@@ -53,7 +46,7 @@ export function UserDetailModal({ dark, open, onClose, user, token }) {
         ktmUrlRef.current = '';
       }
     };
-  }, [open, user, token]);
+  }, [open, user, fetchUserKtm]);
 
   if (!open || !user) return null;
 

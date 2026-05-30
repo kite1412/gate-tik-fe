@@ -55,7 +55,12 @@ async function request(path, options = {}) {
     credentials: options.credentials || 'include',
   });
 
-  const data = await parseJson(response);
+  const data =
+    options.responseType === 'blob'
+      ? await response.blob()
+      : options.responseType === 'text'
+        ? await response.text()
+        : await parseJson(response);
   if (!response.ok) {
     const message = data?.message || data?.error || `HTTP ${response.status}`;
     throw new ApiError(message, response.status, data);

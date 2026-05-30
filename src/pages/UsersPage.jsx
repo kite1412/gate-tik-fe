@@ -12,7 +12,6 @@ import { ConfirmDeleteModal } from '../components/users/ConfirmDeleteModal';
 
 export default function UsersPage() {
   const { dark } = useTheme();
-  const { token } = useAuth();
   const [query, setQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [role, setRole] = useState('all');
@@ -29,6 +28,7 @@ export default function UsersPage() {
     updateUser: saveUser,
     deleteUser,
     verifyUser: activateUser,
+    fetchUserKtm,
   } = useUsers({
     page,
     role: role === 'all' ? undefined : role,
@@ -233,7 +233,7 @@ export default function UsersPage() {
         open={Boolean(detailUser)}
         onClose={() => setDetailUser(null)}
         user={detailUser}
-        token={token}
+        fetchUserKtm={fetchUserKtm}
       />
 
       <UserEditModal

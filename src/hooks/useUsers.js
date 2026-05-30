@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import { api } from '../lib/api';
 
+const KTM_NOT_FOUND_MESSAGE = 'KTM file not found.';
+
 export function useUsers({
   auto = true,
   page = 1,
@@ -72,6 +74,38 @@ export function useUsers({
     [updateUser],
   );
 
+  const fetchUserKtm = useCallback(async (userId) => {
+    if (!userId) {
+      throw new Error('User ID is required.');
+    }
+
+    try {
+      const blob = await api.get(`/api/users/${userId}/ktm`, {
+        headers: {
+          Accept: 'image/*',
+        },
+        responseType: 'blob',
+      });
+
+      if (!blob || blob.size === 0) {
+        throw new Error(KTM_NOT_FOUND_MESSAGE);
+      }
+
+      return blob;
+    } catch (err) {
+      const isNotFoundError =
+        err?.status === 404 ||
+        (typeof err?.message === 'string' &&
+          err.message.toLowerCase().includes('resource not found'));
+
+      if (isNotFoundError) {
+        throw new Error(KTM_NOT_FOUND_MESSAGE);
+      }
+
+      throw err;
+    }
+  }, []);
+
   useEffect(() => {
     if (!auto) return;
     const timer = setTimeout(() => {
@@ -92,5 +126,6 @@ export function useUsers({
     updateUser,
     deleteUser,
     verifyUser,
+    fetchUserKtm,
   };
 }
