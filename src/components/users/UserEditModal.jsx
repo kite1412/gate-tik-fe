@@ -62,7 +62,7 @@ export function UserEditModal({ dark, open, user, onClose, onUpdate }) {
       await onUpdate(user.id, payload);
       onClose();
     } catch (err) {
-      setError(err?.message || 'Gagal memperbarui user.');
+      setError(err?.message || 'Failed to update user.');
     } finally {
       setSubmitting(false);
     }

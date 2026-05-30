@@ -11,7 +11,7 @@ export function ConfirmDeleteModal({ dark, open, user, onClose, onConfirm, loadi
           <div>
             <h2 className="tracking-tight">Delete User</h2>
             <p className="mt-2 text-sm opacity-60">
-              Yakin mau hapus user <strong>{user.full_name}</strong>?
+              Are you sure you want to delete <strong>{user.full_name}</strong>?
             </p>
           </div>
           <button

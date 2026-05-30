@@ -93,7 +93,7 @@ export function UsersTable({
           ) : (
             <tr>
               <td className="px-5 py-6 text-center opacity-60" colSpan={7}>
-                Belum ada data user.
+                No users found.
               </td>
             </tr>
           )}
