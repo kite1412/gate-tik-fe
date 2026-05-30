@@ -12,6 +12,7 @@ import {
 import { useTheme } from '../hooks/useTheme';
 import { useAccessLogs } from '../hooks/useAccessLogs';
 import { formatDate } from '../utils/formatDate';
+import { glass } from '../utils/glass';
 
 const initialChartData = Array.from({ length: 24 }).map((_, i) => ({
   id: `hour-${i}`,
@@ -182,7 +183,7 @@ export default function LogsPage() {
         <button
           onClick={exportCsv}
           disabled={exporting}
-          className={`flex items-center gap-2 rounded-xl border px-4 py-2 text-sm transition ${
+          className={`flex items-center gap-2 rounded-xl border px-4 py-2 text-sm ${
             dark
               ? 'border-white/10 hover:bg-white/5'
               : 'border-blue-200 text-blue-800 hover:bg-blue-50/50 bg-white/50'
@@ -267,7 +268,7 @@ export default function LogsPage() {
       <div className={glass(dark, 'p-4')}>
         <div className="flex flex-wrap items-center gap-3">
           <div
-            className={`flex min-w-55 flex-1 items-center gap-2 rounded-xl border px-3 py-2 transition-all ${
+            className={`flex min-w-55 flex-1 items-center gap-2 rounded-xl border px-3 py-2 ${
               dark
                 ? 'border-white/10 bg-white/5 focus-within:border-blue-400'
                 : 'border-blue-200 bg-white/50 focus-within:border-blue-400 focus-within:bg-white focus-within:shadow-inner text-blue-900'
@@ -515,10 +516,4 @@ function SelectField({ label, value, onChange, dark, children, compact = false }
       </select>
     </label>
   );
-}
-
-function glass(dark, extra = '') {
-  return `rounded-2xl border backdrop-blur-xl shadow-[0_8px_32px_-12px_rgba(2,8,40,0.25)] ${
-    dark ? 'border-white/10 bg-white/4' : 'border-blue-200/50 bg-white/50 shadow-blue-500/5'
-  } ${extra}`;
 }

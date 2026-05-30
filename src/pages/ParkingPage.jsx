@@ -4,6 +4,7 @@ import { Car, Settings2, Users, LocateFixed } from 'lucide-react';
 import { useTheme } from '../hooks/useTheme';
 import { useGateControl } from '../hooks/useGateControl';
 import { useParkingQuota } from '../hooks/useParkingQuota';
+import { glass } from '../utils/glass';
 
 export default function ParkingPage() {
   const { dark } = useTheme();
@@ -308,10 +309,4 @@ export default function ParkingPage() {
       </div>
     </div>
   );
-}
-
-function glass(dark, extra = '') {
-  return `rounded-2xl border backdrop-blur-xl shadow-[0_8px_32px_-12px_rgba(2,8,40,0.25)] ${
-    dark ? 'border-white/10 bg-white/4' : 'border-blue-200/50 bg-white/50 shadow-blue-500/5'
-  } ${extra}`;
 }

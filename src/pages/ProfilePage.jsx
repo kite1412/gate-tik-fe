@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 import { Calendar, Eye, EyeOff, IdCard, Lock, Mail, Phone, Save, Shield, User } from 'lucide-react';
 import { useProfile } from '../hooks/useProfile';
 import { useTheme } from '../hooks/useTheme';
+import { glass } from '../utils/glass';
 
 const emptyPassword = {
   current_password: '',
@@ -166,7 +167,7 @@ export default function ProfilePage() {
               <button
                 onClick={() => (isEditing ? cancelEdit() : setIsEditing(true))}
                 disabled={loading || savingProfile}
-                className={`rounded-lg px-4 py-2 text-sm transition-all disabled:cursor-not-allowed disabled:opacity-60 ${
+                className={`rounded-lg px-4 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-60 ${
                   isEditing
                     ? dark
                       ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30'
@@ -254,7 +255,7 @@ export default function ProfilePage() {
                   animate={{ opacity: 1, y: 0 }}
                   onClick={saveProfile}
                   disabled={savingProfile}
-                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-linear-to-r from-blue-600 to-indigo-600 px-6 py-3 text-white shadow-lg shadow-blue-500/30 transition-all hover:shadow-blue-500/50 disabled:cursor-not-allowed disabled:opacity-70"
+                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-linear-to-r from-blue-600 to-indigo-600 px-6 py-3 text-white shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 disabled:cursor-not-allowed disabled:opacity-70"
                 >
                   <Save className="h-4 w-4" />
                   {savingProfile ? 'Saving...' : 'Save Changes'}
@@ -314,7 +315,7 @@ export default function ProfilePage() {
               <button
                 onClick={updatePassword}
                 disabled={savingPassword}
-                className="flex w-full items-center justify-center gap-2 rounded-xl bg-linear-to-r from-indigo-600 to-blue-600 px-6 py-3 text-white shadow-lg shadow-indigo-500/25 transition-all hover:shadow-indigo-500/40 disabled:cursor-not-allowed disabled:opacity-70"
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-linear-to-r from-indigo-600 to-blue-600 px-6 py-3 text-white shadow-lg shadow-indigo-500/2 hover:shadow-indigo-500/40 disabled:cursor-not-allowed disabled:opacity-70"
               >
                 <Lock className="h-4 w-4" />
                 {savingPassword ? 'Updating...' : 'Update Password'}
@@ -513,7 +514,7 @@ function inputClass(dark, readonly = false) {
     }`;
   }
 
-  return `w-full rounded-xl border px-4 py-2.5 text-sm transition-all outline-none ${
+  return `w-full rounded-xl border px-4 py-2.5 text-sm outline-none ${
     dark
       ? 'border-white/10 bg-white/5 text-white placeholder:text-slate-500 focus:border-blue-500/50 focus:bg-white/10'
       : 'border-blue-200/60 bg-white/60 text-blue-900 placeholder:text-blue-900/40 focus:border-blue-400/70 focus:bg-white shadow-inner'
@@ -530,10 +531,4 @@ function formatDate(dateString) {
     minute: '2-digit',
     hour12: false,
   });
-}
-
-function glass(dark, extra = '') {
-  return `rounded-2xl border backdrop-blur-xl shadow-[0_8px_32px_-12px_rgba(2,8,40,0.25)] ${
-    dark ? 'border-white/10 bg-white/[0.04]' : 'border-blue-200/50 bg-white/50 shadow-blue-500/5'
-  } ${extra}`;
 }

@@ -16,7 +16,7 @@ export function UsersFilters({
     <div className={glass(dark, 'p-4')}>
       <div className="flex flex-wrap items-center gap-3">
         <div
-          className={`flex flex-1 items-center gap-2 rounded-xl border px-3 py-2 transition-all ${
+          className={`flex flex-1 items-center gap-2 rounded-xl border px-3 py-2 ${
             dark
               ? 'border-white/10 bg-white/5 focus-within:border-blue-400'
               : 'border-blue-200 bg-white/50 focus-within:border-blue-400 focus-within:bg-white focus-within:shadow-inner'

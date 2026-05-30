@@ -1,6 +1,7 @@
 import { ArrowUpRight, Video } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useTheme } from '../hooks/useTheme';
+import { glass } from '../utils/glass';
 
 export default function CCTVPage() {
   const { dark } = useTheme();
@@ -55,10 +56,4 @@ export default function CCTVPage() {
       </div>
     </div>
   );
-}
-
-function glass(dark, extra = '') {
-  return `rounded-2xl border backdrop-blur-xl shadow-[0_8px_32px_-12px_rgba(2,8,40,0.25)] ${
-    dark ? 'border-white/10 bg-white/4' : 'border-blue-200/50 bg-white/50 shadow-blue-500/5'
-  } ${extra}`;
 }
