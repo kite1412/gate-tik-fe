@@ -7,7 +7,6 @@ import {
   Car,
   Cpu,
   PhoneCall,
-  TrendingUp,
   ArrowUpRight,
   Wifi,
   Lock,
