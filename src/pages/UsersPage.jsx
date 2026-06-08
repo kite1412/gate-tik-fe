@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { UserPlus } from 'lucide-react';
+import { UserPlus, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useTheme } from '../hooks/useTheme';
-import { useAuth } from '../contexts/useAuth';
 import { useUsers } from '../hooks/useUsers';
 import { UsersFilters } from '../components/users/UsersFilters';
 import { UsersTable } from '../components/users/UsersTable';
@@ -105,13 +104,13 @@ export default function UsersPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="text-sm opacity-60">{totalCount} registered users</p>
+          <p className="text-sm opacity-60">{totalCount} pengguna terdaftar</p>
         </div>
         <button
           onClick={() => setShowCreate(true)}
           className="flex items-center gap-2 rounded-xl bg-linear-to-r from-blue-600 to-indigo-600 px-4 py-2.5 text-sm text-white shadow-lg shadow-blue-500/30"
         >
-          <UserPlus className="h-4 w-4" /> New User
+          <UserPlus className="h-4 w-4" /> Pengguna Baru
         </button>
       </div>
 
@@ -147,11 +146,11 @@ export default function UsersPage() {
         footer={
           <div className="flex flex-wrap items-center justify-between gap-3 border-t border-current/10 px-5 py-4 text-xs">
             <span className="opacity-60">
-              Page {currentPage} of {totalPages} · {totalCount} users
+              Halaman {currentPage} dari {totalPages} · {totalCount} pengguna
             </span>
             <div className="flex flex-wrap items-center gap-2">
               <label className="flex items-center gap-2 opacity-70">
-                Per Page
+                Per Halaman
                 <select
                   value={String(perPage)}
                   onChange={(event) => {
@@ -176,14 +175,14 @@ export default function UsersPage() {
                 disabled={currentPage === 1}
                 className={paginationButton(dark)}
               >
-                First
+                Pertama
               </button>
               <button
                 onClick={() => setPage((prev) => Math.max(1, prev - 1))}
                 disabled={currentPage === 1}
                 className={paginationButton(dark)}
               >
-                Prev
+                <ChevronLeft className="h-4 w-4" />
               </button>
               {pageNumbers.map((num) => (
                 <button
@@ -205,14 +204,14 @@ export default function UsersPage() {
                 disabled={currentPage === totalPages}
                 className={paginationButton(dark)}
               >
-                Next
+                <ChevronLeft className="h-4 w-4 rotate-180" />
               </button>
               <button
                 onClick={() => setPage(totalPages)}
                 disabled={currentPage === totalPages}
                 className={paginationButton(dark)}
               >
-                Last
+                Terakhir
               </button>
             </div>
           </div>
