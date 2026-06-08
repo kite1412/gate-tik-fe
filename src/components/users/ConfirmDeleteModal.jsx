@@ -9,9 +9,9 @@ export function ConfirmDeleteModal({ dark, open, user, onClose, onConfirm, loadi
       <div className={glass(dark, 'w-full max-w-md p-6')}>
         <div className="flex items-start justify-between">
           <div>
-            <h2 className="tracking-tight">Delete User</h2>
+            <h2 className="tracking-tight">Hapus Pengguna</h2>
             <p className="mt-2 text-sm opacity-60">
-              Are you sure you want to delete <strong>{user.full_name}</strong>?
+              Yakin ingin menghapus <strong>{user.full_name}</strong>?
             </p>
           </div>
           <button
@@ -19,7 +19,7 @@ export function ConfirmDeleteModal({ dark, open, user, onClose, onConfirm, loadi
             className={`grid h-8 w-8 place-items-center rounded-lg border ${
               dark ? 'border-white/10 bg-white/5' : 'border-slate-200/80 bg-white/85'
             }`}
-            aria-label="Close"
+            aria-label="Tutup"
           >
             <X className="h-4 w-4" />
           </button>
@@ -32,14 +32,14 @@ export function ConfirmDeleteModal({ dark, open, user, onClose, onConfirm, loadi
               dark ? 'bg-white/5 text-white' : 'bg-slate-100 text-slate-900'
             }`}
           >
-            Cancel
+            Batal
           </button>
           <button
             onClick={onConfirm}
             disabled={loading}
             className="rounded-lg bg-red-600 px-4 py-2 text-sm text-white disabled:cursor-not-allowed disabled:opacity-70"
           >
-            {loading ? 'Deleting...' : 'Delete'}
+            {loading ? 'Menghapus...' : 'Hapus'}
           </button>
         </div>
       </div>

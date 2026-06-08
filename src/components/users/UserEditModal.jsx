@@ -2,6 +2,15 @@ import { useEffect, useState } from 'react';
 import { X } from 'lucide-react';
 import { Modal } from './Modal';
 
+const optionLabels = {
+  admin: 'Admin',
+  staff: 'Staf',
+  mahasiswa: 'Mahasiswa',
+  pending: 'Menunggu',
+  active: 'Aktif',
+  suspended: 'Ditangguhkan',
+};
+
 const emptyForm = {
   full_name: '',
   email: '',
@@ -62,7 +71,7 @@ export function UserEditModal({ dark, open, user, onClose, onUpdate }) {
       await onUpdate(user.id, payload);
       onClose();
     } catch (err) {
-      setError(err?.message || 'Failed to update user.');
+      setError(err?.message || 'Gagal memperbarui pengguna.');
     } finally {
       setSubmitting(false);
     }
@@ -73,15 +82,15 @@ export function UserEditModal({ dark, open, user, onClose, onUpdate }) {
       <div className={glass(dark, 'w-full p-6')}>
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="tracking-tight">Edit User</h2>
-            <p className="text-sm opacity-60">Perbarui data user.</p>
+            <h2 className="tracking-tight">Ubah Pengguna</h2>
+            <p className="text-sm opacity-60">Perbarui data pengguna.</p>
           </div>
           <button
             onClick={onClose}
             className={`grid h-8 w-8 place-items-center rounded-lg border ${
               dark ? 'border-white/10 bg-white/5' : 'border-slate-200/80 bg-white/85'
             }`}
-            aria-label="Close"
+            aria-label="Tutup"
           >
             <X className="h-4 w-4" />
           </button>
@@ -92,7 +101,7 @@ export function UserEditModal({ dark, open, user, onClose, onUpdate }) {
         <form onSubmit={submit} className="mt-5 space-y-4">
           <div className="grid gap-4 md:grid-cols-2">
             <InputField
-              label="Full Name"
+              label="Nama Lengkap"
               value={form.full_name}
               onChange={handleChange('full_name')}
               dark={dark}
@@ -107,11 +116,11 @@ export function UserEditModal({ dark, open, user, onClose, onUpdate }) {
               required
             />
             <InputField
-              label="Password"
+              label="Kata Sandi"
               type="password"
               value={form.password}
               onChange={handleChange('password')}
-              placeholder="Leave blank to keep current password"
+              placeholder="Kosongkan untuk mempertahankan kata sandi saat ini"
               dark={dark}
             />
             <InputField
@@ -122,7 +131,7 @@ export function UserEditModal({ dark, open, user, onClose, onUpdate }) {
               required
             />
             <InputField
-              label="Phone"
+              label="Telepon"
               value={form.phone_number}
               onChange={handleChange('phone_number')}
               dark={dark}
@@ -148,7 +157,7 @@ export function UserEditModal({ dark, open, user, onClose, onUpdate }) {
             disabled={submitting}
             className="w-full rounded-xl bg-linear-to-r from-blue-600 to-indigo-600 px-4 py-2.5 text-sm text-white shadow-lg shadow-blue-500/30 disabled:cursor-not-allowed disabled:opacity-70"
           >
-            {submitting ? 'Saving...' : 'Save Changes'}
+            {submitting ? 'Menyimpan...' : 'Simpan Perubahan'}
           </button>
         </form>
       </div>
@@ -203,7 +212,7 @@ function SelectField({ label, value, onChange, options, dark }) {
             value={option}
             className={dark ? 'bg-slate-900/70 text-white' : 'bg-white text-slate-900'}
           >
-            {option}
+            {optionLabels[option] ?? option}
           </option>
         ))}
       </select>

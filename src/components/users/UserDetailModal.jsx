@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { X } from 'lucide-react';
 import { Modal } from './Modal';
 import { formatDate } from '../../utils/formatDate';
+import { LoadingIndicator } from '../LoadingIndicator';
 
 export function UserDetailModal({ dark, open, onClose, user, fetchUserKtm }) {
   const [ktmUrl, setKtmUrl] = useState('');
@@ -22,7 +23,7 @@ export function UserDetailModal({ dark, open, onClose, user, fetchUserKtm }) {
         setLoadingKtm(true);
         setError('');
         if (typeof fetchUserKtm !== 'function') {
-          throw new Error('KTM service is not available.');
+          throw new Error('Layanan KTM tidak tersedia.');
         }
 
         const blob = await fetchUserKtm(user.id);
@@ -55,54 +56,54 @@ export function UserDetailModal({ dark, open, onClose, user, fetchUserKtm }) {
       <div className={glass(dark, 'w-full p-6')}>
         <div className="flex items-start justify-between">
           <div>
-            <h2 className="tracking-tight">User Detail</h2>
-            <p className="text-sm opacity-60">Detail informasi user.</p>
+            <h2 className="tracking-tight">Detail Pengguna</h2>
+            <p className="text-sm opacity-60">Detail informasi pengguna.</p>
           </div>
           <button
             onClick={onClose}
             className={`grid h-8 w-8 place-items-center rounded-lg border ${
               dark ? 'border-white/10 bg-white/5' : 'border-slate-200/80 bg-white/85'
             }`}
-            aria-label="Close"
+            aria-label="Tutup"
           >
             <X className="h-4 w-4" />
           </button>
         </div>
 
         <div className="mt-4 space-y-3 text-sm">
-          <DetailRow label="Full Name" value={user.full_name} />
+          <DetailRow label="Nama Lengkap" value={user.full_name} />
           <DetailRow label="Email" value={user.email} />
           <DetailRow label="NPM/NIP" value={user.npm_nip} />
-          <DetailRow label="Phone" value={user.phone_number || '-'} />
+          <DetailRow label="Telepon" value={user.phone_number || '-'} />
           <DetailRow label="Role" value={user.role} className="capitalize" />
           <DetailRow label="Status" value={user.status} className="capitalize" />
           <DetailRow
-            label="Registered"
+            label="Terdaftar"
             value={user.created_at ? formatDate(user.created_at) : '-'}
           />
           <DetailRow
-            label="Last Login"
+            label="Login Terakhir"
             value={user.last_login_at ? formatDate(user.last_login_at) : '-'}
           />
         </div>
 
         {user.role === 'mahasiswa' ? (
           <div className="mt-5 space-y-2">
-            <p className="text-xs uppercase tracking-widest opacity-60">KTM Preview</p>
+            <p className="text-xs uppercase tracking-widest opacity-60">Pratinjau KTM</p>
             <div className="overflow-hidden rounded-xl border border-current/10">
               {loadingKtm ? (
                 <div className="flex h-64 items-center justify-center text-sm opacity-60">
-                  Loading KTM...
+                  <LoadingIndicator label="Memuat KTM..." />
                 </div>
               ) : error ? (
                 <div className="flex h-64 items-center justify-center text-sm text-red-500">
                   {error}
                 </div>
               ) : ktmUrl ? (
-                <img src={ktmUrl} alt="KTM Preview" className="h-64 w-full object-cover" />
+                <img src={ktmUrl} alt="Pratinjau KTM" className="h-64 w-full object-cover" />
               ) : (
                 <div className="flex h-64 items-center justify-center text-sm opacity-60">
-                  KTM not found
+                  KTM tidak ditemukan
                 </div>
               )}
             </div>

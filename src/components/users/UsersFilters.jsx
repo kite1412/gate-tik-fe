@@ -2,6 +2,18 @@ import { Filter, Search } from 'lucide-react';
 
 const roles = ['all', 'admin', 'staff', 'mahasiswa'];
 const statuses = ['all', 'pending', 'active', 'suspended'];
+const roleLabels = {
+  all: 'Semua',
+  admin: 'Admin',
+  staff: 'Staf',
+  mahasiswa: 'Mahasiswa',
+};
+const statusLabels = {
+  all: 'Semua',
+  pending: 'Menunggu',
+  active: 'Aktif',
+  suspended: 'Ditangguhkan',
+};
 
 export function UsersFilters({
   dark,
@@ -26,7 +38,7 @@ export function UsersFilters({
           <input
             value={query}
             onChange={(event) => onQueryChange(event.target.value)}
-            placeholder="Search name, email, NPM/NIP, or phone..."
+            placeholder="Cari nama, email, NPM/NIP, atau telepon..."
             className={`w-full bg-transparent text-sm outline-none ${
               dark ? 'placeholder:text-white/30' : 'placeholder:text-blue-900/40 text-slate-800'
             }`}
@@ -46,7 +58,7 @@ export function UsersFilters({
                     : 'bg-blue-100/50 hover:bg-blue-100 text-blue-900/70'
               }`}
             >
-              {value}
+              {roleLabels[value] ?? value}
             </button>
           ))}
           {statuses.map((value) => (
@@ -61,7 +73,7 @@ export function UsersFilters({
                     : 'bg-emerald-100/60 hover:bg-emerald-100 text-emerald-900/70'
               }`}
             >
-              {value}
+              {statusLabels[value] ?? value}
             </button>
           ))}
         </div>
