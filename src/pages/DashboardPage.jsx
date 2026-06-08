@@ -9,6 +9,7 @@ import {
   PhoneCall,
   ArrowUpRight,
   Wifi,
+  WifiOff,
   Lock,
   Video,
 } from 'lucide-react';
@@ -22,6 +23,7 @@ import {
   Tooltip,
 } from 'recharts';
 import { formatDistanceToNow } from 'date-fns';
+import { id } from 'date-fns/locale';
 import { useTheme } from '../hooks/useTheme';
 import { useAuth } from '../contexts/useAuth';
 import { useAccessLogs } from '../hooks/useAccessLogs';
@@ -31,6 +33,7 @@ import { useParkingQuota } from '../hooks/useParkingQuota';
 import { useUsers } from '../hooks/useUsers';
 import { formatDate } from '../utils/formatDate';
 import { glass } from '../utils/glass';
+import { LoadingIndicator } from '../components/LoadingIndicator';
 
 const initialChartData = Array.from({ length: 24 }).map((_, i) => ({
   id: `hour-${i}`,
@@ -77,7 +80,7 @@ export default function DashboardPage() {
       ? '-'
       : iotDeviceStatus.charAt(0).toUpperCase() + iotDeviceStatus.slice(1);
   const iotDeviceDelta = iotDevice?.device_name || 'Gate Ctrl';
-
+  const isUnavailable = parkingTotal === 0;
   const pct = parkingTotal ? Math.round((parkingUsed / parkingTotal) * 100) : 0;
   const activeUsersTotal = userPagination?.total ?? 0;
   const allUsersTotal = allUserPagination?.total ?? 0;
@@ -89,37 +92,37 @@ export default function DashboardPage() {
 
   const stats = [
     {
-      label: 'Active Users',
+      label: 'Pengguna Aktif',
       value: activeUsersTotal,
       delta: `Total ${allUsersTotal}`,
       icon: <Users className="h-5 w-5" />,
       tone: 'blue',
     },
     {
-      label: 'Gate Triggers',
+      label: 'Akses Gate',
       value: gateTriggersTotal,
-      delta: `${gateTriggerSuccessRate}% success`,
+      delta: `${gateTriggerSuccessRate}% berhasil`,
       icon: <DoorOpen className="h-5 w-5" />,
       tone: 'emerald',
     },
     {
-      label: 'Parking (Student)',
+      label: 'Parkir (Mahasiswa)',
       value: parkingLabel,
       delta: `${pct}%`,
       icon: <Car className="h-5 w-5" />,
       tone: 'amber',
     },
     {
-      label: 'IoT Device',
+      label: 'Perangkat IoT',
       value: iotDeviceLabel,
       delta: iotDeviceDelta,
       icon: <Cpu className="h-5 w-5" />,
       tone: 'indigo',
     },
     {
-      label: 'Visitor Call',
-      value: 'Active',
-      delta: 'In progress',
+      label: 'Panggilan Tamu',
+      value: 'Aktif',
+      delta: 'Sedang berlangsung',
       icon: <PhoneCall className="h-5 w-5" />,
       tone: 'rose',
     },
@@ -161,10 +164,11 @@ export default function DashboardPage() {
   }, [chartLogs]);
 
   const lastOpenedText = lastOpened?.created_at
-    ? `Last opened ${formatDistanceToNow(new Date(lastOpened.created_at), {
+    ? `Terakhir diakses ${formatDistanceToNow(new Date(lastOpened.created_at), {
         addSuffix: true,
+        locale: id,
       })}`
-    : 'Last opened —';
+    : 'Terakhir diakses —';
 
   const latestOperator = lastOpened?.user?.full_name || user?.full_name || user?.name;
   const recentLogs = logs.slice(0, 10);
@@ -214,7 +218,7 @@ export default function DashboardPage() {
       await sendOpenGate({
         gate_id: 1,
         access_method: 'web',
-        notes: 'Open gate requested from dashboard',
+        notes: 'Permintaan buka gerbang dari dashboard',
       });
       await fetchLogs();
       setGate('open');
@@ -231,7 +235,7 @@ export default function DashboardPage() {
       await sendCloseGate({
         gate_id: 1,
         access_method: 'web',
-        notes: 'Close gate requested from dashboard',
+        notes: 'Permintaan tutup gerbang dari dashboard',
       });
       await fetchLogs();
       setGate('closed');
@@ -271,109 +275,6 @@ export default function DashboardPage() {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
-        <div className="grid gap-4 md:grid-cols-2 lg:col-span-1 lg:grid-cols-1">
-          <div className={glass(dark, 'flex flex-col p-6')}>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-[11px] uppercase tracking-widest opacity-60">Main Gate</p>
-                {/* <h3 className="tracking-tight">
-                {gate === 'open' ? 'OPEN' : gate === 'opening' ? 'OPENING' : 'CLOSED'}
-              </h3> */}
-              </div>
-              <motion.span
-                className={`h-3 w-3 rounded-full ${gate === 'open' ? 'bg-emerald-400' : 'bg-amber-400'}`}
-                animate={{ opacity: [1, 0.4, 1] }}
-                transition={{ duration: 1.4, repeat: Infinity }}
-              />
-            </div>
-
-            <div className="mt-3 flex items-center gap-2 text-xs opacity-70">
-              <Wifi className="h-3.5 w-3.5 text-emerald-500" /> Online · {lastOpenedText}
-            </div>
-            <p className="mt-0.5 text-xs opacity-50">Operator: {latestOperator || '-'}</p>
-
-            <div className="mt-auto grid grid-cols-2 gap-2 pt-5">
-              <button
-                onClick={openGate}
-                disabled={loadingGate || cooldown}
-                className="flex h-11 items-center justify-center gap-2 rounded-xl bg-linear-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/30 transition hover:shadow-blue-500/50 disabled:cursor-not-allowed disabled:opacity-70"
-              >
-                <DoorOpen className="h-4 w-4" /> Open
-              </button>
-              <button
-                onClick={closeGate}
-                disabled={loadingGate || cooldown}
-                className="flex h-11 items-center justify-center gap-2 rounded-xl bg-red-500/90 text-white shadow-lg shadow-red-500/30 hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-70"
-              >
-                <Lock className="h-4 w-4" /> Lock
-              </button>
-            </div>
-          </div>
-
-          <div className={glass(dark, 'p-6 text-left flex flex-col justify-between')}>
-            <div className="mb-4 flex items-center justify-between">
-              <div>
-                <p className="text-[11px] uppercase tracking-widest opacity-60">
-                  Parking Occupancy
-                </p>
-                <h3 className="tracking-tight">
-                  {parkingUsed} <span className="opacity-50">/ {parkingTotal} slots</span>
-                </h3>
-              </div>
-              <span
-                className={`rounded-full px-3 py-1 text-xs ${
-                  pct >= 90
-                    ? 'bg-red-500/15 text-red-500'
-                    : pct >= 70
-                      ? 'bg-amber-500/15 text-amber-500'
-                      : 'bg-emerald-500/15 text-emerald-500'
-                }`}
-              >
-                {pct >= 90 ? 'Critical' : pct >= 70 ? 'Nearly Full' : 'Available'}
-              </span>
-            </div>
-            <div
-              className={`h-4 w-full overflow-hidden rounded-full ${dark ? 'bg-white/5' : 'bg-blue-100/50 shadow-inner'}`}
-            >
-              <motion.div
-                initial={{ width: 0 }}
-                animate={{ width: `${pct}%` }}
-                transition={{ duration: 1 }}
-                className={`h-full rounded-full ${
-                  pct >= 90
-                    ? 'bg-linear-to-r from-red-500 to-rose-500'
-                    : pct >= 70
-                      ? 'bg-linear-to-r from-amber-400 to-orange-500'
-                      : 'bg-linear-to-r from-emerald-400 to-blue-500'
-                }`}
-              />
-            </div>
-            <div className="mt-4 grid grid-cols-3 gap-3 text-center">
-              <div>
-                <p className="text-xs opacity-60">Total</p>
-                <p>{parkingTotal}</p>
-              </div>
-              <div>
-                <p className="text-xs opacity-60">Used</p>
-                <p>{parkingUsed}</p>
-              </div>
-              <div>
-                <p className="text-xs opacity-60">Free</p>
-                <p>{parkingTotal - parkingUsed}</p>
-              </div>
-            </div>
-            {parkingError ? <p className="mt-3 text-xs text-red-500">{parkingError}</p> : null}
-            <div className="mt-3 w-full flex justify-end">
-              <button
-                className=" text-xs text-blue-500 flex gap-1 items-center hover:underline"
-                onClick={() => navigate('/parking')}
-              >
-                <span>View Details</span> <ArrowUpRight className="h-3 w-3" />
-              </button>
-            </div>
-          </div>
-        </div>
-
         <div className={glass(dark, 'overflow-hidden lg:col-span-2')}>
           <div className="relative aspect-video w-full overflow-hidden bg-[radial-gradient(circle_at_30%_30%,#1f2937,#000)]">
             {cctvUrl ? (
@@ -385,6 +286,7 @@ export default function DashboardPage() {
                 referrerPolicy="no-referrer"
               />
             ) : null}
+
             <div
               className="absolute inset-0 opacity-30"
               style={{
@@ -392,20 +294,14 @@ export default function DashboardPage() {
                   'repeating-linear-gradient(0deg, rgba(255,255,255,0.05) 0 1px, transparent 1px 4px)',
               }}
             />
-            <div className="absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-red-600/90 px-2 py-0.5 text-[10px] uppercase tracking-wider text-white">
-              <motion.span
-                className="h-1.5 w-1.5 rounded-full bg-white"
-                animate={{ opacity: [1, 0.2, 1] }}
-                transition={{ duration: 1, repeat: Infinity }}
-              />
-              Live
-            </div>
+
             <div className="absolute bottom-3 left-3 flex items-center gap-1.5 text-xs text-white">
-              <Video className="h-3.5 w-3.5" /> CAM-01 · Main Gate
+              <Video className="h-3.5 w-3.5" /> CAM-01 · Gerbang Utama
             </div>
           </div>
+
           <div className="flex items-center justify-between px-5 py-3">
-            <p className="text-[11px] uppercase tracking-widest opacity-60">Live Camera</p>
+            <p className="text-[11px] uppercase tracking-widest opacity-60">Kamera Live</p>
             <button
               onClick={openFullscreen}
               disabled={!cctvUrl}
@@ -415,14 +311,133 @@ export default function DashboardPage() {
             </button>
           </div>
         </div>
+
+        <div className="grid gap-4 md:grid-cols-2 lg:col-span-1 lg:grid-cols-1">
+          <div className={glass(dark, 'flex flex-col p-6')}>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-[11px] uppercase tracking-widest opacity-60">Gerbang Utama</p>
+              </div>
+
+              <motion.span
+                className={`h-3 w-3 rounded-full ${
+                  gate === 'open' ? 'bg-emerald-400' : 'bg-amber-400'
+                }`}
+                animate={{ opacity: [1, 0.4, 1] }}
+                transition={{ duration: 1.4, repeat: Infinity }}
+              />
+            </div>
+
+            <div className="mt-3 flex items-center gap-2 text-xs opacity-70">
+              {iotDeviceStatus === 'online' ? (
+                <Wifi className="h-3.5 w-3.5 text-emerald-500" />
+              ) : (
+                <WifiOff className="h-3.5 w-3.5 text-red-500" />
+              )}
+              {iotDeviceStatus === 'online' ? 'Online' : 'Offline'} · {lastOpenedText}
+            </div>
+
+            <p className="mt-0.5 text-xs opacity-50">Operator: {latestOperator || '-'}</p>
+
+            <div className="mt-auto grid grid-cols-2 gap-2 pt-5">
+              <button
+                onClick={openGate}
+                disabled={loadingGate || cooldown}
+                className="flex h-11 items-center justify-center gap-2 rounded-xl bg-linear-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/30 transition hover:shadow-blue-500/50 disabled:cursor-not-allowed disabled:opacity-70"
+              >
+                <DoorOpen className="h-4 w-4" /> Buka
+              </button>
+
+              <button
+                onClick={closeGate}
+                disabled={loadingGate || cooldown}
+                className="flex h-11 items-center justify-center gap-2 rounded-xl bg-red-500/90 text-white shadow-lg shadow-red-500/30 hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-70"
+              >
+                <Lock className="h-4 w-4" /> Tutup
+              </button>
+            </div>
+          </div>
+
+          <div className={glass(dark, 'p-6 text-left flex flex-col justify-between')}>
+            <div className="mb-4 flex items-center justify-between">
+              <div>
+                <p className="text-[11px] uppercase tracking-widest opacity-60">
+                  Ketersediaan Parkir
+                </p>
+                <h3 className="tracking-tight">
+                  {parkingUsed} <span className="opacity-50">/ {parkingTotal} slot</span>
+                </h3>
+              </div>
+
+              <span
+                className={`rounded-full px-3 py-1 text-xs ${
+                  isUnavailable || pct >= 90
+                    ? 'bg-red-500/15 text-red-500'
+                    : pct >= 70
+                      ? 'bg-amber-500/15 text-amber-500'
+                      : 'bg-emerald-500/15 text-emerald-500'
+                }`}
+              >
+                {isUnavailable ? 'Tidak Tersedia' : pct >= 80 ? 'Hampir Penuh' : 'Tersedia'}
+              </span>
+            </div>
+
+            <div
+              className={`h-4 w-full overflow-hidden rounded-full ${
+                dark ? 'bg-white/5' : 'bg-blue-100/50 shadow-inner'
+              }`}
+            >
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${pct}%` }}
+                transition={{ duration: 1 }}
+                className={`h-full rounded-full ${
+                  isUnavailable || pct >= 90
+                    ? 'bg-linear-to-r from-red-500 to-rose-500'
+                    : pct >= 70
+                      ? 'bg-linear-to-r from-amber-400 to-orange-500'
+                      : 'bg-linear-to-r from-emerald-400 to-blue-500'
+                }`}
+              />
+            </div>
+
+            <div className="mt-4 grid grid-cols-3 gap-3 text-center">
+              <div>
+                <p className="text-xs opacity-60">Total</p>
+                <p>{parkingTotal}</p>
+              </div>
+
+              <div>
+                <p className="text-xs opacity-60">Terpakai</p>
+                <p>{parkingUsed}</p>
+              </div>
+
+              <div>
+                <p className="text-xs opacity-60">Sisa</p>
+                <p>{parkingTotal - parkingUsed}</p>
+              </div>
+            </div>
+
+            {parkingError ? <p className="mt-3 text-xs text-red-500">{parkingError}</p> : null}
+
+            <div className="mt-3 flex w-full justify-end">
+              <button
+                className="flex items-center gap-1 text-xs text-blue-500 hover:underline"
+                onClick={() => navigate('/parking')}
+              >
+                <span>Lihat Detail</span> <ArrowUpRight className="h-3 w-3" />
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
         <div className={glass(dark, 'flex flex-col p-6 lg:col-span-3')}>
           <div className="mb-4 flex items-center justify-between">
             <div>
-              <p className="text-[11px] uppercase tracking-widest opacity-60">Access Trend</p>
-              <h3 className="tracking-tight">Last 24 hours</h3>
+              <p className="text-[11px] uppercase tracking-widest opacity-60">Tren Akses</p>
+              <h3 className="tracking-tight">24 Jam Terakhir</h3>
             </div>
           </div>
           <div className="h-56 min-h-56 w-full min-w-0">
@@ -471,40 +486,44 @@ export default function DashboardPage() {
               </AreaChart>
             </ResponsiveContainer>
           </div>
-          {loadingChart ? <p className="mt-3 text-xs opacity-60">Memuat trend 24 jam...</p> : null}
+          {loadingChart ? (
+            <p className="mt-3 text-xs opacity-60">
+              <LoadingIndicator label="Memuat tren 24 jam..." />
+            </p>
+          ) : null}
           {chartError ? <p className="mt-3 text-xs text-red-500">{chartError}</p> : null}
         </div>
       </div>
 
       <div className={glass(dark, 'p-6')}>
         <div className="mb-3 flex items-center justify-between">
-          <h3 className="tracking-tight">Recent Access Activity</h3>
+          <h3 className="tracking-tight">Aktivitas Akses Terbaru</h3>
           <button
             type="button"
             onClick={() => navigate('/logs')}
-            className="text-xs text-blue-500 hover:underline"
+            className="text-xs text-blue-500 hover:underline flex gap-1 items-center"
           >
-            View all
+            Lihat semua <ArrowUpRight className="h-3 w-3" />
           </button>
         </div>
         <div className="overflow-hidden rounded-xl">
           <table className="w-full text-left text-sm">
             <thead className={dark ? 'text-slate-400' : 'text-slate-500'}>
               <tr className="text-[11px] uppercase tracking-wider">
-                <th className="py-2 font-normal">User</th>
-                <th className="py-2 font-normal">Role</th>
-                <th className="py-2 font-normal">Action</th>
-                <th className="py-2 font-normal">Method</th>
+                <th className="py-2 font-normal">Pengguna</th>
+                <th className="py-2 font-normal">Peran</th>
+                <th className="py-2 font-normal">Aksi</th>
+                <th className="py-2 font-normal">Metode</th>
                 <th className="py-2 font-normal">Status</th>
-                <th className="py-2 font-normal">Notes</th>
-                <th className="py-2 font-normal text-center">Timestamp</th>
+                <th className="py-2 font-normal">Catatan</th>
+                <th className="py-2 font-normal text-center">Waktu</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-current/10">
               {loadingLogs ? (
                 <tr>
                   <td className="py-4 text-center opacity-70" colSpan={7}>
-                    Memuat access logs...
+                    <LoadingIndicator label="Memuat log akses..." className="justify-center" />
                   </td>
                 </tr>
               ) : logError ? (

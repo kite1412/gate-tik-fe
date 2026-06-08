@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Download, Search } from 'lucide-react';
+import { Download, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import {
   Area,
   AreaChart,
@@ -13,6 +13,7 @@ import { useTheme } from '../hooks/useTheme';
 import { useAccessLogs } from '../hooks/useAccessLogs';
 import { formatDate } from '../utils/formatDate';
 import { glass } from '../utils/glass';
+import { LoadingIndicator } from '../components/LoadingIndicator';
 
 const initialChartData = Array.from({ length: 24 }).map((_, i) => ({
   id: `hour-${i}`,
@@ -142,7 +143,7 @@ export default function LogsPage() {
         search: search || undefined,
       });
 
-      const headers = ['User', 'Role', 'Action', 'Method', 'Status', 'Notes', 'Timestamp'];
+      const headers = ['Pengguna', 'Peran', 'Aksi', 'Metode', 'Status', 'Catatan', 'Waktu'];
       const rows = allLogs.map((entry) => [
         entry?.user?.full_name || '-',
         entry?.user?.role || '-',
@@ -189,23 +190,23 @@ export default function LogsPage() {
               : 'border-blue-200 text-blue-800 hover:bg-blue-50/50 bg-white/50'
           }`}
         >
-          <Download className="h-4 w-4" /> {exporting ? 'Exporting...' : 'Export CSV'}
+          <Download className="h-4 w-4" /> {exporting ? 'Mengekspor...' : 'Ekspor CSV'}
         </button>
       </div>
 
       <div className={glass(dark, 'flex flex-col p-6')}>
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <div>
-            <p className="text-[11px] uppercase tracking-widest opacity-60">Access Trend</p>
-            <h3 className="tracking-tight">Last 24 hours</h3>
+            <p className="text-[11px] uppercase tracking-widest opacity-60">Tren Akses</p>
+            <h3 className="tracking-tight">24 Jam Terakhir</h3>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-xs opacity-60">Status:</span>
             <SelectField label="" value={chartStatus} onChange={setChartStatus} dark={dark} compact>
-              <option value="all">All</option>
-              <option value="success">Success</option>
-              <option value="failed">Failed</option>
-              <option value="pending">Pending</option>
+              <option value="all">Semua</option>
+              <option value="success">Berhasil</option>
+              <option value="failed">Gagal</option>
+              <option value="pending">Menunggu</option>
             </SelectField>
             {/* <span className="text-xs opacity-60">Period:</span>
             <SelectField label="" value={chartPeriod} onChange={setChartPeriod} dark={dark} compact>
@@ -261,7 +262,11 @@ export default function LogsPage() {
             </AreaChart>
           </ResponsiveContainer>
         </div>
-        {chartLoading ? <p className="mt-3 text-xs opacity-60">Loading chart logs...</p> : null}
+        {chartLoading ? (
+          <p className="mt-3 text-xs opacity-60">
+            <LoadingIndicator label="Memuat grafik log..." />
+          </p>
+        ) : null}
         {chartError ? <p className="mt-3 text-xs text-red-500">{chartError}</p> : null}
       </div>
 
@@ -281,7 +286,7 @@ export default function LogsPage() {
                 setSearch(event.target.value);
                 setPage(1);
               }}
-              placeholder="Search logs…"
+              placeholder="Cari log…"
               className={`w-full bg-transparent text-sm outline-none ${
                 dark ? '' : 'placeholder:text-blue-900/40'
               }`}
@@ -297,10 +302,10 @@ export default function LogsPage() {
             }}
             dark={dark}
           >
-            <option value="all">All</option>
-            <option value="success">Success</option>
-            <option value="failed">Failed</option>
-            <option value="pending">Pending</option>
+            <option value="all">Semua</option>
+            <option value="success">Berhasil</option>
+            <option value="failed">Gagal</option>
+            <option value="pending">Menunggu</option>
           </SelectField>
           <SelectField
             label="Method"
@@ -311,7 +316,7 @@ export default function LogsPage() {
             }}
             dark={dark}
           >
-            <option value="all">All</option>
+            <option value="all">Semua</option>
             <option value="web">Web</option>
             <option value="mobile">Mobile</option>
           </SelectField>
@@ -324,14 +329,14 @@ export default function LogsPage() {
             }}
             dark={dark}
           >
-            <option value="all">All</option>
-            <option value="open">Open</option>
-            <option value="close">Close</option>
-            <option value="entry">Entry</option>
-            <option value="exit">Exit</option>
+            <option value="all">Semua</option>
+            <option value="open">Buka</option>
+            <option value="close">Tutup</option>
+            <option value="entry">Masuk</option>
+            <option value="exit">Keluar</option>
           </SelectField>
           <SelectField
-            label="Sort"
+            label="Urutkan"
             value={sortOrder}
             onChange={(value) => {
               setSortOrder(value);
@@ -339,8 +344,8 @@ export default function LogsPage() {
             }}
             dark={dark}
           >
-            <option value="desc">Newest</option>
-            <option value="asc">Oldest</option>
+            <option value="desc">Terbaru</option>
+            <option value="asc">Terlama</option>
           </SelectField>
         </div>
       </div>
@@ -349,20 +354,20 @@ export default function LogsPage() {
         <table className="w-full text-left text-sm">
           <thead className={dark ? 'bg-white/3 text-slate-400' : 'bg-blue-50/50 text-blue-900/60'}>
             <tr className="text-[11px] uppercase tracking-wider">
-              <th className="px-5 py-3 font-normal">User</th>
-              <th className="px-5 py-3 font-normal">Role</th>
-              <th className="px-5 py-3 font-normal">Action</th>
-              <th className="px-5 py-3 font-normal">Method</th>
+              <th className="px-5 py-3 font-normal">Pengguna</th>
+              <th className="px-5 py-3 font-normal">Peran</th>
+              <th className="px-5 py-3 font-normal">Aksi</th>
+              <th className="px-5 py-3 font-normal">Metode</th>
               <th className="px-5 py-3 font-normal">Status</th>
-              <th className="px-5 py-3 font-normal">Notes</th>
-              <th className="px-5 py-3 font-normal">Timestamp</th>
+              <th className="px-5 py-3 font-normal">Catatan</th>
+              <th className="px-5 py-3 font-normal">Waktu</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-current/10">
             {loading ? (
               <tr>
                 <td className="px-5 py-4 text-center opacity-70" colSpan={7}>
-                  Loading logs...
+                  <LoadingIndicator label="Memuat log..." className="justify-center" />
                 </td>
               </tr>
             ) : error ? (
@@ -374,7 +379,7 @@ export default function LogsPage() {
             ) : !logs.length ? (
               <tr>
                 <td className="px-5 py-4 text-center opacity-70" colSpan={7}>
-                  No access log data available.
+                  Belum ada data log akses.
                 </td>
               </tr>
             ) : (
@@ -410,11 +415,11 @@ export default function LogsPage() {
         </table>
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-current/10 px-5 py-4 text-xs">
           <span className="opacity-60">
-            Page {page} of {totalPages} · {total} records
+            Halaman {page} dari {totalPages} · {total} data
           </span>
           <div className="flex flex-wrap items-center gap-2">
             <label className="flex items-center gap-2 opacity-70">
-              Per Page
+              Per Halaman
               <select
                 value={String(perPage)}
                 onChange={(event) => {
@@ -442,7 +447,7 @@ export default function LogsPage() {
                   : 'border-blue-200 text-blue-800 hover:bg-blue-50/50'
               } disabled:cursor-not-allowed disabled:opacity-50`}
             >
-              First
+              Pertama
             </button>
             <button
               onClick={() => setPage((prev) => Math.max(1, prev - 1))}
@@ -453,7 +458,7 @@ export default function LogsPage() {
                   : 'border-blue-200 text-blue-800 hover:bg-blue-50/50'
               } disabled:cursor-not-allowed disabled:opacity-50`}
             >
-              Prev
+              <ChevronLeft className="h-4 w-4" />
             </button>
             {pageNumbers.map((num) => (
               <button
@@ -479,7 +484,7 @@ export default function LogsPage() {
                   : 'border-blue-200 text-blue-800 hover:bg-blue-50/50'
               } disabled:cursor-not-allowed disabled:opacity-50`}
             >
-              Next
+              <ChevronRight className="h-4 w-4" />
             </button>
             <button
               onClick={() => setPage(totalPages)}
@@ -490,7 +495,7 @@ export default function LogsPage() {
                   : 'border-blue-200 text-blue-800 hover:bg-blue-50/50'
               } disabled:cursor-not-allowed disabled:opacity-50`}
             >
-              Last
+              Terakhir
             </button>
           </div>
         </div>

@@ -4,6 +4,7 @@ import { Calendar, Eye, EyeOff, IdCard, Lock, Mail, Phone, Save, Shield, User } 
 import { useProfile } from '../hooks/useProfile';
 import { useTheme } from '../hooks/useTheme';
 import { glass } from '../utils/glass';
+import { LoadingIndicator } from '../components/LoadingIndicator';
 
 const emptyPassword = {
   current_password: '',
@@ -66,13 +67,13 @@ export default function ProfilePage() {
   const saveProfile = async () => {
     setProfileMessage(null);
     if (!form.full_name.trim() || !form.email.trim() || !form.npm_nip.trim()) {
-      setProfileMessage({ type: 'error', text: 'Name, email, and NPM/NIP are required.' });
+      setProfileMessage({ type: 'error', text: 'Nama, email, dan NPM/NIP wajib diisi.' });
       return;
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(form.email)) {
-      setProfileMessage({ type: 'error', text: 'Invalid email format.' });
+      setProfileMessage({ type: 'error', text: 'Format email tidak valid.' });
       return;
     }
 
@@ -85,11 +86,11 @@ export default function ProfilePage() {
         phone_number: form.phone_number || null,
       });
       setIsEditing(false);
-      setProfileMessage({ type: 'success', text: 'Profile updated successfully.' });
+      setProfileMessage({ type: 'success', text: 'Profil berhasil diperbarui.' });
     } catch (err) {
       setProfileMessage({
         type: 'error',
-        text: err?.message || 'Failed to update profile.',
+        text: err?.message || 'Gagal memperbarui profil.',
       });
     } finally {
       setSavingProfile(false);
@@ -103,20 +104,20 @@ export default function ProfilePage() {
       !passwordData.new_password ||
       !passwordData.new_password_confirmation
     ) {
-      setPasswordMessage({ type: 'error', text: 'All password fields are required.' });
+      setPasswordMessage({ type: 'error', text: 'Semua kolom kata sandi wajib diisi.' });
       return;
     }
 
     if (passwordData.new_password.length < 8) {
       setPasswordMessage({
         type: 'error',
-        text: 'New password must be at least 8 characters long.',
+        text: 'Kata sandi baru minimal 8 karakter.',
       });
       return;
     }
 
     if (passwordData.new_password !== passwordData.new_password_confirmation) {
-      setPasswordMessage({ type: 'error', text: 'Password confirmation does not match.' });
+      setPasswordMessage({ type: 'error', text: 'Konfirmasi kata sandi tidak sama.' });
       return;
     }
 
@@ -124,11 +125,11 @@ export default function ProfilePage() {
     try {
       await changePassword(passwordData);
       setPasswordData(emptyPassword);
-      setPasswordMessage({ type: 'success', text: 'Password updated successfully.' });
+      setPasswordMessage({ type: 'success', text: 'Kata sandi berhasil diperbarui.' });
     } catch (err) {
       setPasswordMessage({
         type: 'error',
-        text: err?.message || 'Failed to update password.',
+        text: err?.message || 'Gagal memperbarui kata sandi.',
       });
     } finally {
       setSavingPassword(false);
@@ -161,8 +162,8 @@ export default function ProfilePage() {
                 dark={dark}
                 icon={<User className={`h-5 w-5 ${dark ? 'text-blue-400' : 'text-blue-600'}`} />}
                 tone="blue"
-                title="Basic Information"
-                subtitle="Your personal details"
+                title="Informasi Dasar"
+                subtitle="Detail data pribadi"
               />
               <button
                 onClick={() => (isEditing ? cancelEdit() : setIsEditing(true))}
@@ -177,11 +178,15 @@ export default function ProfilePage() {
                       : 'bg-blue-500/10 text-blue-600 hover:bg-blue-500/20'
                 }`}
               >
-                {isEditing ? 'Cancel' : 'Edit Profile'}
+                {isEditing ? 'Batal' : 'Ubah Profil'}
               </button>
             </div>
 
-            {loading ? <p className="text-sm opacity-60">Memuat profile...</p> : null}
+            {loading ? (
+              <p className="text-sm opacity-60">
+                <LoadingIndicator label="Memuat profil..." />
+              </p>
+            ) : null}
             <Message
               message={
                 profileMessage ||
@@ -192,24 +197,24 @@ export default function ProfilePage() {
             <div className="space-y-4">
               <ProfileInput
                 dark={dark}
-                label="Full Name"
+                label="Nama Lengkap"
                 required
                 icon={User}
                 value={form.full_name}
                 onChange={handleProfileChange('full_name')}
                 disabled={!isEditing}
-                placeholder="Enter your full name"
+                placeholder="Masukkan nama lengkap"
               />
               <ProfileInput
                 dark={dark}
-                label="Email Address"
+                label="Alamat Email"
                 required
                 icon={Mail}
                 type="email"
                 value={form.email}
                 onChange={handleProfileChange('email')}
                 disabled={!isEditing}
-                placeholder="Enter your email"
+                placeholder="Masukkan email"
               />
               <ProfileInput
                 dark={dark}
@@ -219,26 +224,26 @@ export default function ProfilePage() {
                 value={form.npm_nip}
                 onChange={handleProfileChange('npm_nip')}
                 disabled={!isEditing}
-                placeholder="Enter your NPM/NIP"
+                placeholder="Masukkan NPM/NIP"
               />
               <ProfileInput
                 dark={dark}
-                label="Phone Number"
+                label="Nomor Telepon"
                 icon={Phone}
                 type="tel"
                 value={form.phone_number}
                 onChange={handleProfileChange('phone_number')}
                 disabled={!isEditing}
-                placeholder="Enter your phone number"
+                placeholder="Masukkan nomor telepon"
               />
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <ReadonlyInfo
                   dark={dark}
-                  label="Role"
+                  label="Peran"
                   value={profile.role || '-'}
                   icon={Shield}
-                  badge="Read-only"
+                  badge="Hanya baca"
                 />
                 <ReadonlyInfo
                   dark={dark}
@@ -258,7 +263,7 @@ export default function ProfilePage() {
                   className="flex w-full items-center justify-center gap-2 rounded-xl bg-linear-to-r from-blue-600 to-indigo-600 px-6 py-3 text-white shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 disabled:cursor-not-allowed disabled:opacity-70"
                 >
                   <Save className="h-4 w-4" />
-                  {savingProfile ? 'Saving...' : 'Save Changes'}
+                  {savingProfile ? 'Menyimpan...' : 'Simpan Perubahan'}
                 </motion.button>
               ) : null}
             </div>
@@ -277,8 +282,8 @@ export default function ProfilePage() {
                   <Lock className={`h-5 w-5 ${dark ? 'text-indigo-400' : 'text-indigo-600'}`} />
                 }
                 tone="indigo"
-                title="Change Password"
-                subtitle="Update your password to keep your account secure"
+                title="Ubah Kata Sandi"
+                subtitle="Perbarui kata sandi untuk menjaga keamanan akun"
               />
             </div>
 
@@ -287,30 +292,30 @@ export default function ProfilePage() {
             <div className="space-y-4">
               <PasswordInput
                 dark={dark}
-                label="Current Password"
+                label="Kata Sandi Saat Ini"
                 value={passwordData.current_password}
                 onChange={handlePasswordChange('current_password')}
                 visible={showPasswords.current}
                 onToggle={() => togglePassword('current')}
-                placeholder="Enter current password"
+                placeholder="Masukkan kata sandi saat ini"
               />
               <PasswordInput
                 dark={dark}
-                label="New Password"
+                label="Kata Sandi Baru"
                 value={passwordData.new_password}
                 onChange={handlePasswordChange('new_password')}
                 visible={showPasswords.next}
                 onToggle={() => togglePassword('next')}
-                placeholder="Enter new password (min. 8 characters)"
+                placeholder="Masukkan kata sandi baru (min. 8 karakter)"
               />
               <PasswordInput
                 dark={dark}
-                label="Confirm New Password"
+                label="Konfirmasi Kata Sandi Baru"
                 value={passwordData.new_password_confirmation}
                 onChange={handlePasswordChange('new_password_confirmation')}
                 visible={showPasswords.confirmation}
                 onToggle={() => togglePassword('confirmation')}
-                placeholder="Re-enter new password"
+                placeholder="Masukkan ulang kata sandi baru"
               />
               <button
                 onClick={updatePassword}
@@ -318,7 +323,7 @@ export default function ProfilePage() {
                 className="flex w-full items-center justify-center gap-2 rounded-xl bg-linear-to-r from-indigo-600 to-blue-600 px-6 py-3 text-white shadow-lg shadow-indigo-500/2 hover:shadow-indigo-500/40 disabled:cursor-not-allowed disabled:opacity-70"
               >
                 <Lock className="h-4 w-4" />
-                {savingPassword ? 'Updating...' : 'Update Password'}
+                {savingPassword ? 'Memperbarui...' : 'Perbarui Kata Sandi'}
               </button>
             </div>
           </motion.div>
@@ -340,20 +345,20 @@ export default function ProfilePage() {
                   />
                 }
                 tone="emerald"
-                title="Account Info"
+                title="Info Akun"
               />
             </div>
 
             <div className="space-y-4">
-              <InfoRow dark={dark} label="Last Login" value={formatDate(profile.last_login_at)} />
+              <InfoRow dark={dark} label="Login Terakhir" value={formatDate(profile.last_login_at)} />
               <Divider dark={dark} />
-              <InfoRow dark={dark} label="Account Created" value={formatDate(profile.created_at)} />
+              <InfoRow dark={dark} label="Akun Dibuat" value={formatDate(profile.created_at)} />
               <Divider dark={dark} />
-              <InfoRow dark={dark} label="Last Updated" value={formatDate(profile.updated_at)} />
+              <InfoRow dark={dark} label="Terakhir Diperbarui" value={formatDate(profile.updated_at)} />
               <Divider dark={dark} />
               <InfoRow
                 dark={dark}
-                label="User ID"
+                label="ID Pengguna"
                 value={profile.id ? `#${String(profile.id).padStart(6, '0')}` : '-'}
                 mono
               />

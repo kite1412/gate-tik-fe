@@ -14,14 +14,14 @@ export default function Layout() {
   const navigate = useNavigate();
   const pageTitleMap = {
     '/dashboard': 'Dashboard',
-    '/gate-control': 'Gate Control',
-    '/cctv': 'CCTV Monitoring',
-    '/parking': 'Parking Management',
-    '/users': 'User Management',
-    '/logs': 'Access Logs',
-    '/intercom': 'Visitor Intercom',
-    '/settings': 'Settings',
-    '/profile': 'Profile',
+    '/gate-control': 'Kontrol Gate',
+    '/cctv': 'Monitoring CCTV',
+    '/parking': 'Manajemen Parkir',
+    '/users': 'Manajemen Pengguna',
+    '/logs': 'Log Akses',
+    '/intercom': 'Intercom',
+    '/settings': 'Pengaturan',
+    '/profile': 'Profil',
   };
 
   const currentTitle = pageTitleMap[location.pathname] || 'Dashboard';

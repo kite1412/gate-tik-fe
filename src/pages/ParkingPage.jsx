@@ -49,8 +49,8 @@ export default function ParkingPage() {
   const stats = useMemo(
     () => [
       { label: 'Total', val: quota },
-      { label: 'Used', val: used },
-      { label: 'Free', val: Math.max(quota - used, 0) },
+      { label: 'Terpakai', val: used },
+      { label: 'Sisa', val: Math.max(quota - used, 0) },
     ],
     [quota, used],
   );
@@ -105,7 +105,7 @@ export default function ParkingPage() {
     <div className="space-y-6">
       <div className="grid gap-4 lg:grid-cols-3">
         <div className={glass(dark, 'p-6')}>
-          <p className="text-[11px] uppercase tracking-widest opacity-60">Student Capacity</p>
+          <p className="text-[11px] uppercase tracking-widest opacity-60">Kapasitas Mahasiswa</p>
           <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center">
             <input
               type="number"
@@ -121,16 +121,18 @@ export default function ParkingPage() {
               disabled={saving || loading}
               className="rounded-xl bg-blue-600 px-4 py-2 text-sm text-white disabled:cursor-not-allowed disabled:opacity-70"
             >
-              {saving ? 'Saving...' : 'Save'}
+              {saving ? 'Menyimpan...' : 'Simpan'}
             </button>
           </div>
-          <p className="mt-2 text-xs opacity-60">Maximum student vehicles allowed</p>
+          <p className="mt-2 text-xs opacity-60">Maksimum kendaraan mahasiswa yang diizinkan</p>
           {error ? <p className="mt-2 text-xs text-red-500">{error}</p> : null}
         </div>
 
         <div className={glass(dark, 'p-6 lg:col-span-2')}>
           <div className="mb-3 flex items-center justify-between">
-            <p className="text-[11px] uppercase tracking-widest opacity-60">Occupancy</p>
+            <p className="text-[11px] uppercase tracking-widest opacity-60">
+              Ketersediaan Parkir Mahasiswa
+            </p>
             <span className="text-sm">
               {used} / {quota} ({pct}%)
             </span>
@@ -169,7 +171,7 @@ export default function ParkingPage() {
       </div>
 
       <div className={glass(dark, 'p-6')}>
-        <h3 className="mb-3 tracking-tight">Settings</h3>
+        <h3 className="mb-3 tracking-tight">Pengaturan</h3>
         <div className="space-y-3">
           <div
             className={`flex items-center justify-between rounded-xl border p-4 ${
@@ -179,9 +181,9 @@ export default function ParkingPage() {
             <div className="flex items-center gap-3">
               <Settings2 className="h-4 w-4" />
               <div>
-                <p>Auto Restriction</p>
+                <p>Pembatasan Otomatis</p>
                 <p className="text-xs opacity-60">
-                  Block student access automatically when parking is full
+                  Blokir akses mahasiswa otomatis saat parkir penuh
                 </p>
               </div>
             </div>
@@ -211,14 +213,14 @@ export default function ParkingPage() {
             <div className="flex items-center gap-3">
               <LocateFixed className="h-4 w-4" />
               <div>
-                <p>Allowed Radius Meter</p>
+                <p>Radius Diizinkan (Meter)</p>
                 <p className="text-xs opacity-60">
-                  Define the radius within which students can access parking
+                  Tentukan radius agar mahasiswa bisa mengakses parkir
                 </p>
                 <p className="text-xs opacity-60">
                   {allowedRadius === 0
-                    ? 'Disabled (0 meter)'
-                    : `Current radius: ${allowedRadius} meter`}
+                    ? 'Nonaktif (0 meter)'
+                    : `Radius saat ini: ${allowedRadius} meter`}
                 </p>
                 {radiusError ? <p className="text-xs text-red-500">{radiusError}</p> : null}
               </div>
@@ -267,7 +269,7 @@ export default function ParkingPage() {
       </div>
 
       <div className={glass(dark, 'p-6')}>
-        <h3 className="mb-3 tracking-tight">Parking Notes</h3>
+        <h3 className="mb-3 tracking-tight">Catatan Parkir</h3>
         <div className="space-y-3">
           <div
             className={`rounded-xl border p-4 ${
@@ -278,11 +280,11 @@ export default function ParkingPage() {
               <Car className="mt-0.5 h-5 w-5 text-blue-500" />
               <div>
                 <p className={dark ? 'font-medium text-slate-100' : 'font-medium text-slate-800'}>
-                  Student Quota System
+                  Sistem Kuota Mahasiswa
                 </p>
                 <p className="mt-1 text-sm opacity-70">
-                  Parking slots are limited for students based on the capacity quota. Auto
-                  restriction will block student access when full.
+                  Slot parkir mahasiswa dibatasi sesuai kuota kapasitas. Pembatasan otomatis akan
+                  memblokir akses mahasiswa saat penuh.
                 </p>
               </div>
             </div>
@@ -296,11 +298,11 @@ export default function ParkingPage() {
               <Users className="mt-0.5 h-5 w-5 text-emerald-500" />
               <div>
                 <p className={dark ? 'font-medium text-slate-100' : 'font-medium text-slate-800'}>
-                  Staff & Admin Access
+                  Akses Staf & Admin
                 </p>
                 <p className="mt-1 text-sm opacity-70">
-                  Staff and admin have unlimited parking access and are not subject to capacity
-                  restrictions.
+                  Staf dan admin memiliki akses parkir tanpa batas dan tidak terikat pembatasan
+                  kapasitas.
                 </p>
               </div>
             </div>

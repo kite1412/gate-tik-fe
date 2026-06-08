@@ -1,5 +1,12 @@
 import { Eye, Trash2, UserCheck, UserPen } from 'lucide-react';
 import { formatDate } from '../../utils/formatDate';
+import { LoadingIndicator } from '../LoadingIndicator';
+
+const statusLabels = {
+  active: 'Aktif',
+  pending: 'Menunggu',
+  suspended: 'Ditangguhkan',
+};
 
 export function UsersTable({
   dark,
@@ -18,20 +25,20 @@ export function UsersTable({
       <table className="w-full text-left text-sm">
         <thead className={dark ? 'bg-white/3 text-slate-400' : 'bg-blue-50/50 text-blue-900/60'}>
           <tr className="text-[11px] uppercase tracking-wider">
-            <th className="px-5 py-3 font-normal">Name</th>
+            <th className="px-5 py-3 font-normal">Nama</th>
             <th className="px-5 py-3 font-normal">Role</th>
             <th className="px-5 py-3 font-normal">Email</th>
             <th className="px-5 py-3 font-normal">NPM/NIP</th>
             <th className="px-5 py-3 font-normal">Status</th>
-            <th className="px-5 py-3 font-normal">Registered</th>
-            <th className="px-5 py-3 text-right font-normal pr-15">Actions</th>
+            <th className="px-5 py-3 font-normal">Terdaftar</th>
+            <th className="px-5 py-3 text-right font-normal pr-18">Aksi</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-current/10">
           {loading ? (
             <tr>
               <td className="px-5 py-6 text-center opacity-60" colSpan={7}>
-                Loading users...
+                <LoadingIndicator label="Memuat pengguna..." className="justify-center" />
               </td>
             </tr>
           ) : error ? (
@@ -49,7 +56,7 @@ export function UsersTable({
                 <td className="px-5 py-3 opacity-70">{userItem.npm_nip}</td>
                 <td className="px-5 py-3">
                   <span
-                    className={`rounded-full px-2 py-0.5 text-xs capitalize ${
+                    className={`rounded-full px-2 py-0.5 text-xs ${
                       userItem.status === 'active'
                         ? 'bg-emerald-500/15 text-emerald-500'
                         : userItem.status === 'pending'
@@ -57,7 +64,7 @@ export function UsersTable({
                           : 'bg-red-500/15 text-red-500'
                     }`}
                   >
-                    {userItem.status}
+                    {statusLabels[userItem.status] ?? userItem.status}
                   </span>
                 </td>
                 <td className="px-5 py-3 tabular-nums opacity-70">
@@ -70,7 +77,7 @@ export function UsersTable({
                     </IconBtn>
                     <IconBtn
                       dark={dark}
-                      title="Verify"
+                      title="Verifikasi"
                       onClick={() => onVerify?.(userItem)}
                       disabled={
                         userItem.role !== 'mahasiswa' ||
@@ -80,10 +87,10 @@ export function UsersTable({
                     >
                       <UserCheck className="h-4 w-4 text-emerald-500" />
                     </IconBtn>
-                    <IconBtn dark={dark} title="Edit" onClick={() => onEdit?.(userItem)}>
+                    <IconBtn dark={dark} title="Ubah" onClick={() => onEdit?.(userItem)}>
                       <UserPen className="h-4 w-4 text-amber-500" />
                     </IconBtn>
-                    <IconBtn dark={dark} title="Delete" onClick={() => onDelete(userItem)}>
+                    <IconBtn dark={dark} title="Hapus" onClick={() => onDelete(userItem)}>
                       <Trash2 className="h-4 w-4 text-red-500" />
                     </IconBtn>
                   </div>
@@ -93,7 +100,7 @@ export function UsersTable({
           ) : (
             <tr>
               <td className="px-5 py-6 text-center opacity-60" colSpan={7}>
-                No users found.
+                Pengguna tidak ditemukan.
               </td>
             </tr>
           )}
