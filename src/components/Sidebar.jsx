@@ -1,31 +1,22 @@
 import { AnimatePresence, motion } from 'motion/react';
-import {
-  LayoutDashboard,
-  Video,
-  Car,
-  Users,
-  ScrollText,
-  PhoneCall,
-  LogOut,
-  X,
-} from 'lucide-react';
+import { LayoutDashboard, Video, Car, Users, ScrollText, PhoneCall, LogOut, X } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 
 const navItems = [
   { path: '/dashboard', label: 'Dashboard', icon: <LayoutDashboard className="h-4 w-4" /> },
   // { path: '/gate-control', label: 'Gate Control', icon: <DoorOpen className="h-4 w-4" /> },
-  { path: '/cctv', label: 'CCTV Monitoring', icon: <Video className="h-4 w-4" /> },
-  { path: '/parking', label: 'Parking Management', icon: <Car className="h-4 w-4" /> },
-  { path: '/users', label: 'User Management', icon: <Users className="h-4 w-4" /> },
-  { path: '/logs', label: 'Access Logs', icon: <ScrollText className="h-4 w-4" /> },
-  { path: '/intercom', label: 'Visitor Intercom', icon: <PhoneCall className="h-4 w-4" /> },
+  { path: '/cctv', label: 'Monitoring CCTV', icon: <Video className="h-4 w-4" /> },
+  { path: '/parking', label: 'Manajemen Parkir', icon: <Car className="h-4 w-4" /> },
+  { path: '/users', label: 'Manajemen Pengguna', icon: <Users className="h-4 w-4" /> },
+  { path: '/logs', label: 'Log Akses', icon: <ScrollText className="h-4 w-4" /> },
+  { path: '/intercom', label: 'Intercom', icon: <PhoneCall className="h-4 w-4" /> },
   // { path: '/settings', label: 'Settings', icon: <Settings className="h-4 w-4" /> },
 ];
 
 function SidebarContent({ dark, user, onLogout, onClose, showHeader = true }) {
   const displayName = user?.full_name || user?.name || 'User';
-  const email = user?.email || 'user@campus.edu';
+  const email = user?.email || 'user@example.com';
   const initial = displayName.charAt(0) || 'U';
   const navigate = useNavigate();
 
@@ -34,7 +25,7 @@ function SidebarContent({ dark, user, onLogout, onClose, showHeader = true }) {
       {showHeader ? (
         <div className="mb-7 flex items-center gap-2.5">
           <div className="grid h-9 w-9 p-1 place-items-center rounded-xl bg-linear-to-br from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/30">
-            <img src="/app-icon.svg" alt="Logo" />
+            <img src="/gate-tik-icon.svg" alt="Logo" />
           </div>
           <div>
             <p className="tracking-tight">{import.meta.env.VITE_APP_NAME}</p>
@@ -143,7 +134,7 @@ export function Sidebar({ dark, user, onLogout, isOpen, onClose }) {
               <div className="mb-6 flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
                   <div className="p-1 grid h-9 w-9 place-items-center rounded-xl bg-linear-to-br from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/30">
-                    <img src="/app-icon.svg" alt="Logo" />
+                    <img src="/gate-tik-icon.svg" alt="Logo" />
                   </div>
                   <div>
                     <p className="tracking-tight">{import.meta.env.VITE_APP_NAME}</p>

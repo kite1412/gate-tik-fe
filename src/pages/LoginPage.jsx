@@ -97,7 +97,7 @@ export default function LoginPage() {
                 dark ? 'shadow-blue-500/40' : 'shadow-blue-500/30 text-white'
               }`}
             >
-              <img src="/app-icon.svg" alt="Logo" />
+              <img src="/gate-tik-icon.svg" alt="Logo" />
             </div>
             <h1 className="tracking-tight">{import.meta.env.VITE_APP_NAME}</h1>
             <p className={`mt-1.5 text-sm ${dark ? 'text-white/60' : 'text-blue-900/60'}`}>
@@ -106,7 +106,7 @@ export default function LoginPage() {
           </div>
 
           <form onSubmit={submit} className="space-y-4">
-            <Field icon={<Mail className="h-4 w-4" />} label="Email / NPM" dark={dark}>
+            <Field icon={<Mail className="h-4 w-4" />} label="Email" dark={dark}>
               <input
                 type="text"
                 value={email}
@@ -116,7 +116,7 @@ export default function LoginPage() {
                     ? 'placeholder:text-white/30 text-white'
                     : 'placeholder:text-blue-900/30 text-slate-900'
                 }`}
-                placeholder="you@campus.edu"
+                placeholder="user@example.com"
                 required
               />
             </Field>
