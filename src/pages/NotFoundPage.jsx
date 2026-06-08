@@ -68,7 +68,7 @@ export default function NotFoundPage() {
                 404
               </h1>
               <h2 className={dark ? 'text-2xl text-slate-100' : 'text-2xl text-slate-900'}>
-                Page Not Found
+                Halaman Tidak Ditemukan
               </h2>
             </motion.div>
 
@@ -78,9 +78,10 @@ export default function NotFoundPage() {
               transition={{ delay: 0.3, duration: 0.5 }}
               className={dark ? 'mb-8 text-base text-slate-400' : 'mb-8 text-base text-slate-600'}
             >
-              The page you're looking for doesn't exist or has been moved.
+              Halaman yang Anda cari tidak dapat ditemukan. URL mungkin salah atau halaman telah
+              dipindahkan.
               <br />
-              Please check the URL or return to the dashboard.
+              Silakan periksa kembali URL atau kembali ke dashboard.
             </motion.p>
 
             <motion.div
@@ -98,7 +99,7 @@ export default function NotFoundPage() {
                 }`}
               >
                 <Home className="h-4 w-4" />
-                Back to Dashboard
+                Kembali ke Dashboard
               </button>
 
               <button
@@ -110,7 +111,7 @@ export default function NotFoundPage() {
                 }`}
               >
                 <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
-                Go Back
+                Kembali
               </button>
             </motion.div>
           </div>
