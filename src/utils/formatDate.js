@@ -1,11 +1,6 @@
+import { format } from 'date-fns';
+import { id } from 'date-fns/locale';
+
 export const formatDate = (dateString) => {
-  return new Date(dateString).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    hour12: false,
-  });
+  return format(new Date(dateString), 'd MMMM yyyy, HH:mm:ss', { locale: id });
 };
