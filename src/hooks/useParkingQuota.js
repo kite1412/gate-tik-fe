@@ -2,9 +2,9 @@ import { useCallback, useEffect, useState } from 'react';
 import { api } from '../lib/api';
 
 const DEFAULT_QUOTA = {
-  total_slots: 100,
+  total_slots: 0,
   used_slots: 0,
-  available_slots: 100,
+  available_slots: 0,
   auto_restrict_student: true,
 };
 
