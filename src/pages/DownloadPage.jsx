@@ -11,11 +11,13 @@ export default function DownloadPage() {
 
   const onToggleDark = () => toggle();
 
+  const fallbackUrl = import.meta.env.VITE_APP_RELEASE_PAGE || import.meta.env.APP_RELEASE_PAGE || '#';
+
   const platforms = [
-    { name: 'Android', icon: <Smartphone className="h-6 w-6" />, desc: 'Untuk perangkat Android', url: '#' },
-    { name: 'Windows (amd64)', icon: <Monitor className="h-6 w-6" />, desc: 'Untuk PC Windows 64-bit', url: '#' },
-    { name: 'Linux (amd64)', icon: <Terminal className="h-6 w-6" />, desc: 'Untuk PC Linux 64-bit', url: '#' },
-    { name: 'Linux (arm64)', icon: <Terminal className="h-6 w-6" />, desc: 'Untuk Linux ARM 64-bit', url: '#' },
+    { name: 'Android', icon: <Smartphone className="h-6 w-6" />, desc: 'Untuk perangkat Android', url: import.meta.env.VITE_ANDROID_INSTALLATION_URL || import.meta.env.ANDROID_INSTALLATION_URL || fallbackUrl },
+    { name: 'Windows (amd64)', icon: <Monitor className="h-6 w-6" />, desc: 'Untuk PC Windows 64-bit', url: import.meta.env.VITE_WINDOWS_AMD64_INSTALLATION_URL || import.meta.env.WINDOWS_AMD64_INSTALLATION_URL || fallbackUrl },
+    { name: 'Linux (amd64)', icon: <Terminal className="h-6 w-6" />, desc: 'Untuk PC Linux 64-bit', url: import.meta.env.VITE_LINUX_AMD64_INSTALLATION_URL || import.meta.env.LINUX_AMD64_INSTALLATION_URL || fallbackUrl },
+    { name: 'Linux (arm64)', icon: <Terminal className="h-6 w-6" />, desc: 'Untuk Linux ARM 64-bit', url: import.meta.env.VITE_LINUX_ARM64_INSTALLATION_URL || import.meta.env.LINUX_ARM64_INSTALLATION_URL || fallbackUrl },
   ];
 
   return (
@@ -97,7 +99,12 @@ export default function DownloadPage() {
               <Download className="h-8 w-8 text-white" />
             </div>
             <h1 className="text-2xl font-semibold tracking-tight">Unduh Aplikasi Gate TIK</h1>
-            <p className={`mt-2 text-sm ${dark ? 'text-white/60' : 'text-blue-900/60'}`}>
+            {(import.meta.env.VITE_APP_LATEST_VERSION || import.meta.env.APP_LATEST_VERSION) && (
+              <div className={`mt-2.5 inline-flex items-center rounded-full px-3 py-1 text-s font-medium tracking-wide ${dark ? 'bg-blue-500/20 text-blue-300' : 'bg-blue-500/10 text-blue-700'}`}>
+                {import.meta.env.VITE_APP_LATEST_VERSION || import.meta.env.APP_LATEST_VERSION}
+              </div>
+            )}
+            <p className={`mt-3 text-sm ${dark ? 'text-white/60' : 'text-blue-900/60'}`}>
               Pilih platform yang sesuai dengan perangkat Anda untuk mengunduh aplikasi.
             </p>
           </div>
@@ -133,7 +140,7 @@ export default function DownloadPage() {
 
           <div className="mt-8 pt-6 border-t border-white/10 flex flex-col items-center">
             <a
-              href="#"
+              href={import.meta.env.VITE_APP_RELEASE_PAGE || import.meta.env.APP_RELEASE_PAGE || '#'}
               className={`inline-flex items-center gap-2 text-sm font-medium transition-colors ${
                 dark ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'
               }`}
