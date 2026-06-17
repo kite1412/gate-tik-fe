@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'motion/react';
-import { LayoutDashboard, Video, Car, Users, ScrollText, PhoneCall, LogOut, X } from 'lucide-react';
+import { LayoutDashboard, Video, Car, Users, ScrollText, PhoneCall, LogOut, X, Download } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 
@@ -62,6 +62,23 @@ function SidebarContent({ dark, user, onLogout, onClose, showHeader = true }) {
           </NavLink>
         ))}
       </nav>
+
+      <div className="mt-auto pt-4 md:hidden">
+        <button
+          onClick={() => {
+            navigate('/download');
+            if (onClose) onClose();
+          }}
+          className={`flex w-full items-center justify-center gap-2 rounded-xl border px-3 py-2 text-sm font-medium transition ${
+            dark
+              ? 'border-white/10 bg-white/5 hover:bg-white/10 text-white'
+              : 'border-blue-200/60 bg-white/60 text-blue-800 hover:bg-white hover:shadow-md'
+          }`}
+        >
+          <Download className="h-4 w-4" />
+          <span className="whitespace-nowrap">Download App</span>
+        </button>
+      </div>
 
       <div
         className={`mt-4 flex items-center gap-3 rounded-2xl border p-3 ${

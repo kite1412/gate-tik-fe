@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'motion/react';
-import { Mail, Lock, Moon, Sun, Loader2 } from 'lucide-react';
+import { Mail, Lock, Moon, Sun, Loader2, Download } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/useAuth';
 import { useMediaQuery } from '../hooks/useMediaQuery';
@@ -68,17 +68,30 @@ export default function LoginPage() {
         transition={{ duration: 12, repeat: Infinity }}
       />
 
-      <button
-        onClick={onToggleDark}
-        className={`absolute right-5 top-5 z-50 rounded-full border p-2.5 backdrop-blur-md transition ${
-          dark
-            ? 'border-white/15 bg-white/5 hover:bg-white/10'
-            : 'border-blue-200/50 bg-white/50 text-blue-800 hover:bg-white/80 shadow-sm'
-        }`}
-        aria-label="toggle theme"
-      >
-        {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-      </button>
+      <div className="absolute right-5 top-5 z-50 flex items-center gap-3">
+        <button
+          onClick={() => navigate('/download')}
+          className={`flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium backdrop-blur-md transition ${
+            dark
+              ? 'border-white/15 bg-white/5 hover:bg-white/10 text-white'
+              : 'border-blue-200/50 bg-white/50 text-blue-800 hover:bg-white/80 shadow-sm'
+          }`}
+        >
+          <Download className="h-4 w-4" />
+          <span className="hidden sm:inline whitespace-nowrap">Download App</span>
+        </button>
+        <button
+          onClick={onToggleDark}
+          className={`rounded-full border p-2.5 backdrop-blur-md transition ${
+            dark
+              ? 'border-white/15 bg-white/5 hover:bg-white/10'
+              : 'border-blue-200/50 bg-white/50 text-blue-800 hover:bg-white/80 shadow-sm'
+          }`}
+          aria-label="toggle theme"
+        >
+          {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+        </button>
+      </div>
 
       <div className="relative z-0 flex min-h-screen items-center justify-center px-5 py-10">
         <motion.div

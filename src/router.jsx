@@ -12,6 +12,7 @@ import IntercomPage from './pages/IntercomPage';
 import LogsPage from './pages/LogsPage';
 import ProfilePage from './pages/ProfilePage';
 import NotFoundPage from './pages/NotFoundPage';
+import DownloadPage from './pages/DownloadPage';
 
 export const router = createBrowserRouter([
   {
@@ -48,6 +49,7 @@ export const router = createBrowserRouter([
           { path: '/profile', element: <ProfilePage /> },
         ],
       },
+      { path: '/download', element: <DownloadPage /> },
       { path: '*', element: <NotFoundPage /> },
     ],
   },
