@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { Download, Monitor, Smartphone, Terminal, ExternalLink, Moon, Sun, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -9,16 +10,39 @@ export default function DownloadPage() {
   const navigate = useNavigate();
   const isMobile = useMediaQuery('(max-width: 640px)');
 
+  const [releaseInfo, setReleaseInfo] = useState(null);
+
+  useEffect(() => {
+    const fetchReleaseInfo = async () => {
+      try {
+        const response = await fetch(import.meta.env.VITE_APP_RELEASE_INFO || 'https://api.github.com/repos/kite1412/gatetik/releases/latest');
+        const data = await response.json();
+        setReleaseInfo(data);
+      } catch (error) {
+        console.error('Failed to fetch release info:', error);
+      }
+    };
+    fetchReleaseInfo();
+  }, []);
+
   const onToggleDark = () => toggle();
 
   const fallbackUrl = import.meta.env.VITE_APP_RELEASE_PAGE || import.meta.env.APP_RELEASE_PAGE || '#';
 
+  const getAssetUrl = (keyword) => {
+    if (!releaseInfo) return fallbackUrl;
+    const asset = releaseInfo.assets?.find(a => a.name.includes(keyword));
+    return asset ? asset.browser_download_url : fallbackUrl;
+  };
+
   const platforms = [
-    { name: 'Android', icon: <Smartphone className="h-6 w-6" />, desc: 'Untuk perangkat Android', url: import.meta.env.VITE_ANDROID_INSTALLATION_URL || import.meta.env.ANDROID_INSTALLATION_URL || fallbackUrl },
-    { name: 'Windows (amd64)', icon: <Monitor className="h-6 w-6" />, desc: 'Untuk PC Windows 64-bit', url: import.meta.env.VITE_WINDOWS_AMD64_INSTALLATION_URL || import.meta.env.WINDOWS_AMD64_INSTALLATION_URL || fallbackUrl },
-    { name: 'Linux (amd64)', icon: <Terminal className="h-6 w-6" />, desc: 'Untuk PC Linux 64-bit', url: import.meta.env.VITE_LINUX_AMD64_INSTALLATION_URL || import.meta.env.LINUX_AMD64_INSTALLATION_URL || fallbackUrl },
-    { name: 'Linux (arm64)', icon: <Terminal className="h-6 w-6" />, desc: 'Untuk Linux ARM 64-bit', url: import.meta.env.VITE_LINUX_ARM64_INSTALLATION_URL || import.meta.env.LINUX_ARM64_INSTALLATION_URL || fallbackUrl },
+    { name: 'Android', icon: <Smartphone className="h-6 w-6" />, desc: 'Untuk perangkat Android', url: getAssetUrl('.apk') },
+    { name: 'Windows (amd64)', icon: <Monitor className="h-6 w-6" />, desc: 'Untuk PC Windows 64-bit', url: getAssetUrl('.msi') },
+    { name: 'Linux (amd64)', icon: <Terminal className="h-6 w-6" />, desc: 'Untuk PC Linux 64-bit', url: getAssetUrl('linux_amd64.deb') },
+    { name: 'Linux (arm64)', icon: <Terminal className="h-6 w-6" />, desc: 'Untuk Linux ARM 64-bit', url: getAssetUrl('linux_arm64.deb') },
   ];
+
+  const latestVersion = releaseInfo?.tag_name || import.meta.env.VITE_APP_LATEST_VERSION || import.meta.env.APP_LATEST_VERSION;
 
   return (
     <div
@@ -99,9 +123,9 @@ export default function DownloadPage() {
               <Download className="h-8 w-8 text-white" />
             </div>
             <h1 className="text-2xl font-semibold tracking-tight">Unduh Aplikasi Gate TIK</h1>
-            {(import.meta.env.VITE_APP_LATEST_VERSION || import.meta.env.APP_LATEST_VERSION) && (
+            {latestVersion && (
               <div className={`mt-2.5 inline-flex items-center rounded-full px-3 py-1 text-s font-medium tracking-wide ${dark ? 'bg-blue-500/20 text-blue-300' : 'bg-blue-500/10 text-blue-700'}`}>
-                {import.meta.env.VITE_APP_LATEST_VERSION || import.meta.env.APP_LATEST_VERSION}
+                {latestVersion}
               </div>
             )}
             <p className={`mt-3 text-sm ${dark ? 'text-white/60' : 'text-blue-900/60'}`}>
