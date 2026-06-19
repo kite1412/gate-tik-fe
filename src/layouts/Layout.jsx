@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'motion/react';
-import { Menu, Moon, Sun } from 'lucide-react';
+import { Menu, Moon, Sun, Download } from 'lucide-react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { Sidebar } from '../components/Sidebar';
 import { useAuth } from '../contexts/useAuth';
@@ -103,6 +103,17 @@ export default function Layout() {
               </kbd>
             </div> */}
 
+            <button
+              onClick={() => navigate('/download')}
+              className={`hidden sm:flex items-center gap-2 rounded-xl border px-3.5 py-1.5 text-sm font-medium transition ${
+                dark
+                  ? 'border-white/10 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white'
+                  : 'border-blue-200/60 bg-white/60 text-blue-800 hover:bg-white hover:shadow-md hover:shadow-blue-500/10'
+              }`}
+            >
+              <Download className="h-4 w-4" />
+              <span className="whitespace-nowrap">Download App</span>
+            </button>
             <button
               onClick={toggle}
               className={`grid h-9 w-9 place-items-center rounded-xl border ${
