@@ -1,5 +1,5 @@
 ﻿import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { motion } from 'motion/react';
+import { AnimatePresence, motion } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
 import {
   Users,
@@ -8,9 +8,12 @@ import {
   Cpu,
   PhoneCall,
   ArrowUpRight,
+  ChevronLeft,
+  ChevronRight,
   Wifi,
   WifiOff,
   Lock,
+  Maximize2,
   Video,
 } from 'lucide-react';
 import {
@@ -30,9 +33,12 @@ import { useAccessLogs } from '../hooks/useAccessLogs';
 import { useGateControl } from '../hooks/useGateControl';
 import { useIotDevice } from '../hooks/useIotDevice';
 import { useParkingQuota } from '../hooks/useParkingQuota';
+import { useCCTV } from '../hooks/useCCTV';
 import { useUsers } from '../hooks/useUsers';
 import { formatDate } from '../utils/formatDate';
+import { buildCctvFeedUrl } from '../utils/cctv';
 import { glass } from '../utils/glass';
+import { FullscreenCCTVModal } from '../components/cctv/FullscreenCCTVModal';
 import { LoadingIndicator } from '../components/LoadingIndicator';
 
 const initialChartData = Array.from({ length: 24 }).map((_, i) => ({
@@ -52,6 +58,8 @@ export default function DashboardPage() {
   const [chartLogs, setChartLogs] = useState([]);
   const [loadingChart, setLoadingChart] = useState(true);
   const [chartError, setChartError] = useState('');
+  const [activeCctvId, setActiveCctvId] = useState(null);
+  const [fullscreenCctvId, setFullscreenCctvId] = useState(null);
   const {
     logs,
     lastOpened,
@@ -68,12 +76,12 @@ export default function DashboardPage() {
   } = useGateControl();
   const { parkingQuota, error: parkingError } = useParkingQuota();
   const { iotDevice } = useIotDevice();
+  const { cameras: cctvCameras, loading: loadingCctv, error: cctvError } = useCCTV();
   const { pagination: userPagination } = useUsers({ status: 'active', perPage: 1 });
   const { pagination: allUserPagination } = useUsers({ perPage: 1 });
   const parkingUsed = parkingQuota?.used_slots ?? 0;
   const parkingTotal = parkingQuota?.total_slots ?? 0;
   const parkingLabel = `${parkingUsed}/${parkingTotal}`;
-  const cctvUrl = import.meta.env.VITE_API_CCTV_URL;
   const iotDeviceStatus = iotDevice?.status || '-';
   const iotDeviceLabel =
     iotDeviceStatus === '-'
@@ -163,6 +171,23 @@ export default function DashboardPage() {
     }));
   }, [chartLogs]);
 
+  const sortedCctvs = useMemo(() => {
+    return [...cctvCameras].sort((left, right) => (left.id ?? 0) - (right.id ?? 0));
+  }, [cctvCameras]);
+
+  const activeCctvIndex = sortedCctvs.findIndex((camera) => camera.id === activeCctvId);
+  const activeCctv =
+    activeCctvIndex >= 0 ? sortedCctvs[activeCctvIndex] : sortedCctvs[0] ?? null;
+  const fullscreenCctv =
+    fullscreenCctvId !== null
+      ? sortedCctvs.find((camera) => camera.id === fullscreenCctvId) ?? null
+      : null;
+  const activeCctvFeedUrl = activeCctv ? buildCctvFeedUrl(activeCctv.path) : '';
+  const canPreviewActiveCctv = Boolean(activeCctv?.is_active && activeCctvFeedUrl);
+  const canGoPreviousCctv = activeCctvIndex > 0;
+  const canGoNextCctv =
+    activeCctvIndex >= 0 && activeCctvIndex < sortedCctvs.length - 1;
+
   const lastOpenedText = lastOpened?.created_at
     ? `Terakhir diakses ${formatDistanceToNow(new Date(lastOpened.created_at), {
         addSuffix: true,
@@ -211,6 +236,26 @@ export default function DashboardPage() {
     return () => clearTimeout(timer);
   }, [fetchChartLogs24h]);
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (!sortedCctvs.length) {
+        setActiveCctvId(null);
+        setFullscreenCctvId(null);
+        return;
+      }
+
+      setActiveCctvId((current) =>
+        sortedCctvs.some((camera) => camera.id === current) ? current : sortedCctvs[0].id,
+      );
+
+      setFullscreenCctvId((current) =>
+        current !== null && sortedCctvs.some((camera) => camera.id === current) ? current : null,
+      );
+    }, 0);
+
+    return () => clearTimeout(timer);
+  }, [sortedCctvs]);
+
   const openGate = async () => {
     if (loadingGate || cooldown) return;
     setGate('opening');
@@ -245,334 +290,439 @@ export default function DashboardPage() {
     }
   };
 
-  const openFullscreen = () => {
-    if (!cctvUrl) return;
-    window.open(cctvUrl, '_blank', 'noopener,noreferrer');
+  const showPreviousCctv = () => {
+    if (!canGoPreviousCctv) return;
+    setActiveCctvId(sortedCctvs[activeCctvIndex - 1].id);
+  };
+
+  const showNextCctv = () => {
+    if (!canGoNextCctv) return;
+    setActiveCctvId(sortedCctvs[activeCctvIndex + 1].id);
   };
 
   return (
-    <div className="space-y-6">
-      {/* <div>
-        <h1 className="text-2xl tracking-tight">Welcome back, {displayName}</h1>
-        <p className="text-sm opacity-60">Real-time overview of campus access & monitoring</p>
-      </div> */}
+    <>
+      <div className="space-y-6">
+        {/* <div>
+          <h1 className="text-2xl tracking-tight">Welcome back, {displayName}</h1>
+          <p className="text-sm opacity-60">Real-time overview of campus access & monitoring</p>
+        </div> */}
 
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-5">
-        {stats.map((item) => (
-          <motion.div key={item.label} whileHover={{ y: -3 }} className={glass(dark, 'p-5')}>
-            <div className="flex items-start justify-between">
-              <div
-                className={`grid h-10 w-10 place-items-center rounded-xl ${toneBg(item.tone, dark)}`}
-              >
-                {item.icon}
+        <div className="grid grid-cols-2 gap-2.5 sm:gap-4 md:grid-cols-3 xl:grid-cols-5">
+          {stats.map((item) => (
+            <motion.div
+              key={item.label}
+              whileHover={{ y: -3 }}
+              className={glass(dark, 'p-3 sm:p-4 md:p-5')}
+            >
+              <div className="flex min-w-0 items-start justify-between gap-2">
+                <div
+                  className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg sm:h-9 sm:w-9 md:h-10 md:w-10 md:rounded-xl [&>svg]:h-4 [&>svg]:w-4 sm:[&>svg]:h-5 sm:[&>svg]:w-5 ${toneBg(
+                    item.tone,
+                    dark,
+                  )}`}
+                >
+                  {item.icon}
+                </div>
+                <span className="min-w-0 truncate text-[10px] opacity-60 sm:text-[11px]">
+                  {item.delta}
+                </span>
               </div>
-              <span className="text-[11px] opacity-60">{item.delta}</span>
-            </div>
-            <p className="mt-3 text-2xl tracking-tight">{item.value}</p>
-            <p className="text-xs opacity-60">{item.label}</p>
-          </motion.div>
-        ))}
-      </div>
+              <p className="mt-2 truncate text-lg tracking-tight sm:mt-3 sm:text-xl md:text-2xl">
+                {item.value}
+              </p>
+              <p className="truncate text-[11px] opacity-60 sm:text-xs">{item.label}</p>
+            </motion.div>
+          ))}
+        </div>
 
-      <div className="grid gap-4 lg:grid-cols-3">
-        <div className={glass(dark, 'overflow-hidden lg:col-span-2')}>
-          <div className="relative aspect-video w-full overflow-hidden bg-[radial-gradient(circle_at_30%_30%,#1f2937,#000)]">
-            {cctvUrl ? (
-              <iframe
-                title="CCTV Feed"
-                src={cctvUrl}
-                className="absolute inset-0 h-full w-full"
-                allow="autoplay; encrypted-media"
-                referrerPolicy="no-referrer"
-              />
-            ) : null}
-
+        <div className="grid gap-4 lg:grid-cols-3">
+          <div className={glass(dark, 'overflow-hidden lg:col-span-2')}>
             <div
-              className="absolute inset-0 opacity-30"
-              style={{
-                backgroundImage:
-                  'repeating-linear-gradient(0deg, rgba(255,255,255,0.05) 0 1px, transparent 1px 4px)',
-              }}
-            />
+              className="relative aspect-video w-full overflow-hidden bg-[radial-gradient(circle_at_30%_30%,#1f2937,#000)]"
+              style={
+                activeCctv
+                  ? {
+                      background: `radial-gradient(circle at 30% 30%, ${activeCctv._gradient[0]}, ${activeCctv._gradient[1]})`,
+                    }
+                  : undefined
+              }
+            >
+              {loadingCctv ? (
+                <div className="absolute inset-0 flex items-center justify-center text-sm text-white/60">
+                  <LoadingIndicator label="Memuat kamera..." />
+                </div>
+              ) : cctvError ? (
+                <div className="absolute inset-0 flex items-center justify-center px-6 text-center text-sm text-red-300">
+                  {cctvError}
+                </div>
+              ) : canPreviewActiveCctv ? (
+                <iframe
+                  title={`CCTV ${activeCctv.camera_name}`}
+                  src={activeCctvFeedUrl}
+                  className="absolute inset-0 h-full w-full border-0"
+                  allow="autoplay; encrypted-media"
+                  referrerPolicy="no-referrer"
+                />
+              ) : (
+                <div className="absolute inset-0 flex items-center justify-center px-6 text-center text-sm uppercase tracking-widest text-white/40">
+                  {activeCctv
+                    ? activeCctv.is_active
+                      ? 'Feed Belum Diatur'
+                      : 'No Signal'
+                    : 'Belum Ada Kamera'}
+                </div>
+              )}
+            </div>
 
-            <div className="absolute bottom-3 left-3 flex items-center gap-1.5 text-xs text-white">
-              <Video className="h-3.5 w-3.5" /> CAM-01 · Gerbang Utama
+            <div className="flex items-center justify-between gap-3 px-5 py-3">
+              <div className="flex min-w-0 items-center gap-2">
+                <Video
+                  className={`h-3.5 w-3.5 shrink-0 ${
+                    activeCctv?.is_active ? 'text-blue-400' : 'opacity-30'
+                  }`}
+                />
+                <div className="min-w-0">
+                  <p className="truncate text-xs font-medium leading-tight">
+                    {activeCctv?.camera_name || 'Kamera belum tersedia'}
+                  </p>
+                  <p
+                    className={`mt-0.5 truncate text-[10px] ${
+                      dark ? 'text-white/35' : 'text-slate-400'
+                    }`}
+                  >
+                    {activeCctv?.path ? `/${activeCctv.path}` : '-'}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-1.5">
+                <DashboardIconButton
+                  dark={dark}
+                  title="Kamera sebelumnya"
+                  onClick={showPreviousCctv}
+                  disabled={!canGoPreviousCctv}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </DashboardIconButton>
+                <DashboardIconButton
+                  dark={dark}
+                  title="Kamera berikutnya"
+                  onClick={showNextCctv}
+                  disabled={!canGoNextCctv}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </DashboardIconButton>
+                <DashboardIconButton
+                  dark={dark}
+                  title="Fullscreen"
+                  onClick={() => activeCctv && setFullscreenCctvId(activeCctv.id)}
+                  disabled={!activeCctv}
+                >
+                  <Maximize2 className="h-4 w-4" />
+                </DashboardIconButton>
+              </div>
             </div>
           </div>
 
-          <div className="flex items-center justify-between px-5 py-3">
-            <p className="text-[11px] uppercase tracking-widest opacity-60">Kamera Live</p>
-            <button
-              onClick={openFullscreen}
-              disabled={!cctvUrl}
-              className="flex items-center gap-1 text-xs text-blue-500 hover:underline disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              Fullscreen <ArrowUpRight className="h-3 w-3" />
-            </button>
+          <div className="grid gap-4 md:grid-cols-2 lg:col-span-1 lg:grid-cols-1">
+            <div className={glass(dark, 'flex flex-col p-4 sm:p-6')}>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-[11px] uppercase tracking-widest opacity-60">Gerbang Utama</p>
+                </div>
+
+                <motion.span
+                  className={`h-3 w-3 rounded-full ${
+                    gate === 'open' ? 'bg-emerald-400' : 'bg-amber-400'
+                  }`}
+                  animate={{ opacity: [1, 0.4, 1] }}
+                  transition={{ duration: 1.4, repeat: Infinity }}
+                />
+              </div>
+
+              <div className="mt-3 flex items-center gap-2 text-xs opacity-70">
+                {iotDeviceStatus === 'online' ? (
+                  <Wifi className="h-3.5 w-3.5 text-emerald-500" />
+                ) : (
+                  <WifiOff className="h-3.5 w-3.5 text-red-500" />
+                )}
+                {iotDeviceStatus === 'online' ? 'Online' : 'Offline'} · {lastOpenedText}
+              </div>
+
+              <p className="mt-0.5 text-xs opacity-50">Operator: {latestOperator || '-'}</p>
+
+              <div className="mt-auto grid grid-cols-2 gap-2 pt-4 sm:pt-5">
+                <button
+                  onClick={openGate}
+                  disabled={loadingGate || cooldown}
+                  className="flex h-10 items-center justify-center gap-1.5 rounded-xl bg-linear-to-r from-blue-600 to-indigo-600 text-sm text-white shadow-lg shadow-blue-500/30 transition hover:shadow-blue-500/50 disabled:cursor-not-allowed disabled:opacity-70 sm:h-11 sm:gap-2"
+                >
+                  <DoorOpen className="h-4 w-4" /> Buka
+                </button>
+
+                <button
+                  onClick={closeGate}
+                  disabled={loadingGate || cooldown}
+                  className="flex h-10 items-center justify-center gap-1.5 rounded-xl bg-red-500/90 text-sm text-white shadow-lg shadow-red-500/30 hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-70 sm:h-11 sm:gap-2"
+                >
+                  <Lock className="h-4 w-4" /> Tutup
+                </button>
+              </div>
+            </div>
+
+            <div className={glass(dark, 'p-4 text-left flex flex-col justify-between sm:p-6')}>
+              <div className="mb-4 flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-[11px] uppercase tracking-widest opacity-60">
+                    Ketersediaan Parkir
+                  </p>
+                  <h3 className="text-lg tracking-tight sm:text-xl">
+                    {parkingUsed} <span className="opacity-50">/ {parkingTotal} slot</span>
+                  </h3>
+                </div>
+
+                <span
+                  className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] sm:px-3 sm:text-xs ${
+                    isUnavailable || pct >= 90
+                      ? 'bg-red-500/15 text-red-500'
+                      : pct >= 70
+                        ? 'bg-amber-500/15 text-amber-500'
+                        : 'bg-emerald-500/15 text-emerald-500'
+                  }`}
+                >
+                  {isUnavailable ? 'Tidak Tersedia' : pct >= 80 ? 'Hampir Penuh' : 'Tersedia'}
+                </span>
+              </div>
+
+              <div
+                className={`h-4 w-full overflow-hidden rounded-full ${
+                  dark ? 'bg-white/5' : 'bg-blue-100/50 shadow-inner'
+                }`}
+              >
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${pct}%` }}
+                  transition={{ duration: 1 }}
+                  className={`h-full rounded-full ${
+                    isUnavailable || pct >= 90
+                      ? 'bg-linear-to-r from-red-500 to-rose-500'
+                      : pct >= 70
+                        ? 'bg-linear-to-r from-amber-400 to-orange-500'
+                        : 'bg-linear-to-r from-emerald-400 to-blue-500'
+                  }`}
+                />
+              </div>
+
+              <div className="mt-4 grid grid-cols-3 gap-2 text-center sm:gap-3">
+                <div>
+                  <p className="text-[11px] opacity-60 sm:text-xs">Total</p>
+                  <p className="text-sm sm:text-base">{parkingTotal}</p>
+                </div>
+
+                <div>
+                  <p className="text-[11px] opacity-60 sm:text-xs">Terpakai</p>
+                  <p className="text-sm sm:text-base">{parkingUsed}</p>
+                </div>
+
+                <div>
+                  <p className="text-[11px] opacity-60 sm:text-xs">Sisa</p>
+                  <p className="text-sm sm:text-base">{parkingTotal - parkingUsed}</p>
+                </div>
+              </div>
+
+              {parkingError ? <p className="mt-3 text-xs text-red-500">{parkingError}</p> : null}
+
+              <div className="mt-3 flex w-full justify-end">
+                <button
+                  className="flex items-center gap-1 text-xs text-blue-500 hover:underline"
+                  onClick={() => navigate('/parking')}
+                >
+                  <span>Lihat Detail</span> <ArrowUpRight className="h-3 w-3" />
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2 lg:col-span-1 lg:grid-cols-1">
-          <div className={glass(dark, 'flex flex-col p-6')}>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-[11px] uppercase tracking-widest opacity-60">Gerbang Utama</p>
-              </div>
-
-              <motion.span
-                className={`h-3 w-3 rounded-full ${
-                  gate === 'open' ? 'bg-emerald-400' : 'bg-amber-400'
-                }`}
-                animate={{ opacity: [1, 0.4, 1] }}
-                transition={{ duration: 1.4, repeat: Infinity }}
-              />
-            </div>
-
-            <div className="mt-3 flex items-center gap-2 text-xs opacity-70">
-              {iotDeviceStatus === 'online' ? (
-                <Wifi className="h-3.5 w-3.5 text-emerald-500" />
-              ) : (
-                <WifiOff className="h-3.5 w-3.5 text-red-500" />
-              )}
-              {iotDeviceStatus === 'online' ? 'Online' : 'Offline'} · {lastOpenedText}
-            </div>
-
-            <p className="mt-0.5 text-xs opacity-50">Operator: {latestOperator || '-'}</p>
-
-            <div className="mt-auto grid grid-cols-2 gap-2 pt-5">
-              <button
-                onClick={openGate}
-                disabled={loadingGate || cooldown}
-                className="flex h-11 items-center justify-center gap-2 rounded-xl bg-linear-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/30 transition hover:shadow-blue-500/50 disabled:cursor-not-allowed disabled:opacity-70"
-              >
-                <DoorOpen className="h-4 w-4" /> Buka
-              </button>
-
-              <button
-                onClick={closeGate}
-                disabled={loadingGate || cooldown}
-                className="flex h-11 items-center justify-center gap-2 rounded-xl bg-red-500/90 text-white shadow-lg shadow-red-500/30 hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-70"
-              >
-                <Lock className="h-4 w-4" /> Tutup
-              </button>
-            </div>
-          </div>
-
-          <div className={glass(dark, 'p-6 text-left flex flex-col justify-between')}>
+        <div className="grid gap-4 lg:grid-cols-3">
+          <div className={glass(dark, 'flex flex-col p-4 sm:p-6 lg:col-span-3')}>
             <div className="mb-4 flex items-center justify-between">
               <div>
-                <p className="text-[11px] uppercase tracking-widest opacity-60">
-                  Ketersediaan Parkir
-                </p>
-                <h3 className="tracking-tight">
-                  {parkingUsed} <span className="opacity-50">/ {parkingTotal} slot</span>
-                </h3>
+                <p className="text-[11px] uppercase tracking-widest opacity-60">Tren Akses</p>
+                <h3 className="tracking-tight">24 Jam Terakhir</h3>
               </div>
-
-              <span
-                className={`rounded-full px-3 py-1 text-xs ${
-                  isUnavailable || pct >= 90
-                    ? 'bg-red-500/15 text-red-500'
-                    : pct >= 70
-                      ? 'bg-amber-500/15 text-amber-500'
-                      : 'bg-emerald-500/15 text-emerald-500'
-                }`}
-              >
-                {isUnavailable ? 'Tidak Tersedia' : pct >= 80 ? 'Hampir Penuh' : 'Tersedia'}
-              </span>
             </div>
+            <div className="-mx-4 overflow-x-auto px-4 pb-2 sm:mx-0 sm:px-0">
+              <div className="h-56 min-h-56 min-w-[640px]">
+                <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+                  <AreaChart data={chartData} margin={{ top: 0, right: 12, left: -12, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="dashboardAccessGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.6} />
+                        <stop offset="100%" stopColor="#3b82f6" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid
+                      strokeDasharray="3 3"
+                      stroke={dark ? '#1f2937' : '#e5e7eb'}
+                      vertical={false}
+                    />
+                    <XAxis
+                      dataKey="hour"
+                      stroke={dark ? '#64748b' : '#94a3b8'}
+                      fontSize={9}
+                      tickLine={false}
+                      axisLine={false}
+                      interval={3}
+                    />
+                    <YAxis
+                      stroke={dark ? '#64748b' : '#94a3b8'}
+                      fontSize={9}
+                      tickLine={false}
+                      axisLine={false}
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        background: dark ? '#0b1226' : '#fff',
+                        border: '1px solid rgba(59,130,246,0.3)',
+                        borderRadius: 12,
+                      }}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="access"
+                      stroke="#3b82f6"
+                      strokeWidth={2}
+                      fill="url(#dashboardAccessGradient)"
+                      isAnimationActive={false}
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+            {loadingChart ? (
+              <p className="mt-3 text-xs opacity-60">
+                <LoadingIndicator label="Memuat tren 24 jam..." />
+              </p>
+            ) : null}
+            {chartError ? <p className="mt-3 text-xs text-red-500">{chartError}</p> : null}
+          </div>
+        </div>
 
-            <div
-              className={`h-4 w-full overflow-hidden rounded-full ${
-                dark ? 'bg-white/5' : 'bg-blue-100/50 shadow-inner'
-              }`}
+        <div className={glass(dark, 'p-4 sm:p-6')}>
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+            <h3 className="tracking-tight">Aktivitas Akses Terbaru</h3>
+            <button
+              type="button"
+              onClick={() => navigate('/logs')}
+              className="flex items-center gap-1 text-xs text-blue-500 hover:underline"
             >
-              <motion.div
-                initial={{ width: 0 }}
-                animate={{ width: `${pct}%` }}
-                transition={{ duration: 1 }}
-                className={`h-full rounded-full ${
-                  isUnavailable || pct >= 90
-                    ? 'bg-linear-to-r from-red-500 to-rose-500'
-                    : pct >= 70
-                      ? 'bg-linear-to-r from-amber-400 to-orange-500'
-                      : 'bg-linear-to-r from-emerald-400 to-blue-500'
-                }`}
-              />
-            </div>
-
-            <div className="mt-4 grid grid-cols-3 gap-3 text-center">
-              <div>
-                <p className="text-xs opacity-60">Total</p>
-                <p>{parkingTotal}</p>
-              </div>
-
-              <div>
-                <p className="text-xs opacity-60">Terpakai</p>
-                <p>{parkingUsed}</p>
-              </div>
-
-              <div>
-                <p className="text-xs opacity-60">Sisa</p>
-                <p>{parkingTotal - parkingUsed}</p>
-              </div>
-            </div>
-
-            {parkingError ? <p className="mt-3 text-xs text-red-500">{parkingError}</p> : null}
-
-            <div className="mt-3 flex w-full justify-end">
-              <button
-                className="flex items-center gap-1 text-xs text-blue-500 hover:underline"
-                onClick={() => navigate('/parking')}
-              >
-                <span>Lihat Detail</span> <ArrowUpRight className="h-3 w-3" />
-              </button>
-            </div>
+              Lihat semua <ArrowUpRight className="h-3 w-3" />
+            </button>
           </div>
-        </div>
-      </div>
-
-      <div className="grid gap-4 lg:grid-cols-3">
-        <div className={glass(dark, 'flex flex-col p-6 lg:col-span-3')}>
-          <div className="mb-4 flex items-center justify-between">
-            <div>
-              <p className="text-[11px] uppercase tracking-widest opacity-60">Tren Akses</p>
-              <h3 className="tracking-tight">24 Jam Terakhir</h3>
-            </div>
-          </div>
-          <div className="h-56 min-h-56 w-full min-w-0">
-            <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-              <AreaChart data={chartData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="dashboardAccessGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.6} />
-                    <stop offset="100%" stopColor="#3b82f6" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid
-                  strokeDasharray="3 3"
-                  stroke={dark ? '#1f2937' : '#e5e7eb'}
-                  vertical={false}
-                />
-                <XAxis
-                  dataKey="hour"
-                  stroke={dark ? '#64748b' : '#94a3b8'}
-                  fontSize={9}
-                  tickLine={false}
-                  axisLine={false}
-                  interval={3}
-                />
-                <YAxis
-                  stroke={dark ? '#64748b' : '#94a3b8'}
-                  fontSize={9}
-                  tickLine={false}
-                  axisLine={false}
-                />
-                <Tooltip
-                  contentStyle={{
-                    background: dark ? '#0b1226' : '#fff',
-                    border: '1px solid rgba(59,130,246,0.3)',
-                    borderRadius: 12,
-                  }}
-                />
-                <Area
-                  type="monotone"
-                  dataKey="access"
-                  stroke="#3b82f6"
-                  strokeWidth={2}
-                  fill="url(#dashboardAccessGradient)"
-                  isAnimationActive={false}
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-          {loadingChart ? (
-            <p className="mt-3 text-xs opacity-60">
-              <LoadingIndicator label="Memuat tren 24 jam..." />
-            </p>
-          ) : null}
-          {chartError ? <p className="mt-3 text-xs text-red-500">{chartError}</p> : null}
-        </div>
-      </div>
-
-      <div className={glass(dark, 'p-6')}>
-        <div className="mb-3 flex items-center justify-between">
-          <h3 className="tracking-tight">Aktivitas Akses Terbaru</h3>
-          <button
-            type="button"
-            onClick={() => navigate('/logs')}
-            className="text-xs text-blue-500 hover:underline flex gap-1 items-center"
-          >
-            Lihat semua <ArrowUpRight className="h-3 w-3" />
-          </button>
-        </div>
-        <div className="overflow-hidden rounded-xl">
-          <table className="w-full text-left text-sm">
-            <thead className={dark ? 'text-slate-400' : 'text-slate-500'}>
-              <tr className="text-[11px] uppercase tracking-wider">
-                <th className="py-2 font-normal">Pengguna</th>
-                <th className="py-2 font-normal">Peran</th>
-                <th className="py-2 font-normal">Aksi</th>
-                <th className="py-2 font-normal">Metode</th>
-                <th className="py-2 font-normal">Status</th>
-                <th className="py-2 font-normal">Catatan</th>
-                <th className="py-2 font-normal text-center">Waktu</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-current/10">
-              {loadingLogs ? (
-                <tr>
-                  <td className="py-4 text-center opacity-70" colSpan={7}>
-                    <LoadingIndicator label="Memuat log akses..." className="justify-center" />
-                  </td>
-                </tr>
-              ) : logError ? (
-                <tr>
-                  <td className="py-4 text-center text-red-500/90" colSpan={7}>
-                    {logError}
-                  </td>
-                </tr>
-              ) : !recentLogs.length ? (
-                <tr>
-                  <td className="py-4 text-center opacity-70" colSpan={7}>
-                    Belum ada data access log.
-                  </td>
-                </tr>
-              ) : (
-                recentLogs.map((entry) => {
-                  const timestamp = entry?.created_at ? formatDate(entry.created_at) : '-';
-                  const statusClass = {
-                    success: 'bg-emerald-500/15 text-emerald-500',
-                    pending: 'bg-amber-500/15 text-amber-500',
-                    failed: 'bg-red-500/15 text-red-500',
-                  };
-
-                  return (
-                    <tr key={entry.id} className="hover:bg-current/3">
-                      <td className="py-3">{entry?.user?.full_name || '-'}</td>
-                      <td className="py-3 opacity-70 capitalize">{entry?.user?.role || '-'}</td>
-                      <td className="py-3 opacity-70 capitalize">{entry?.action || '-'}</td>
-                      <td className="py-3 opacity-70 capitalize">{entry?.access_method || '-'}</td>
-                      <td className="py-3">
-                        <span
-                          className={`rounded-full px-2 py-0.5 text-xs capitalize ${
-                            statusClass[entry?.access_status]
-                          }`}
-                        >
-                          {entry?.access_status || '-'}
-                        </span>
+          <div className="-mx-4 overflow-x-auto px-4 pb-2 sm:mx-0 sm:px-0">
+            <div className="min-w-[860px] overflow-hidden rounded-xl">
+              <table className="w-full text-left text-sm">
+                <thead className={dark ? 'text-slate-400' : 'text-slate-500'}>
+                  <tr className="text-[11px] uppercase tracking-wider">
+                    <th className="px-3 py-2 font-normal">Pengguna</th>
+                    <th className="px-3 py-2 font-normal">Peran</th>
+                    <th className="px-3 py-2 font-normal">Aksi</th>
+                    <th className="px-3 py-2 font-normal">Metode</th>
+                    <th className="px-3 py-2 font-normal">Status</th>
+                    <th className="px-3 py-2 font-normal">Catatan</th>
+                    <th className="px-3 py-2 text-center font-normal">Waktu</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-current/10">
+                  {loadingLogs ? (
+                    <tr>
+                      <td className="px-3 py-4 text-center opacity-70" colSpan={7}>
+                        <LoadingIndicator label="Memuat log akses..." className="justify-center" />
                       </td>
-                      <td className="py-3 opacity-70">{entry?.notes || '-'}</td>
-                      <td className="py-3 tabular-nums opacity-70 text-center">{timestamp}</td>
                     </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
+                  ) : logError ? (
+                    <tr>
+                      <td className="px-3 py-4 text-center text-red-500/90" colSpan={7}>
+                        {logError}
+                      </td>
+                    </tr>
+                  ) : !recentLogs.length ? (
+                    <tr>
+                      <td className="px-3 py-4 text-center opacity-70" colSpan={7}>
+                        Belum ada data access log.
+                      </td>
+                    </tr>
+                  ) : (
+                    recentLogs.map((entry) => {
+                      const timestamp = entry?.created_at ? formatDate(entry.created_at) : '-';
+                      const statusClass = {
+                        success: 'bg-emerald-500/15 text-emerald-500',
+                        pending: 'bg-amber-500/15 text-amber-500',
+                        failed: 'bg-red-500/15 text-red-500',
+                      };
+
+                      return (
+                        <tr key={entry.id} className="hover:bg-current/3">
+                          <td className="px-3 py-3">{entry?.user?.full_name || '-'}</td>
+                          <td className="px-3 py-3 capitalize opacity-70">
+                            {entry?.user?.role || '-'}
+                          </td>
+                          <td className="px-3 py-3 capitalize opacity-70">{entry?.action || '-'}</td>
+                          <td className="px-3 py-3 capitalize opacity-70">
+                            {entry?.access_method || '-'}
+                          </td>
+                          <td className="px-3 py-3">
+                            <span
+                              className={`rounded-full px-2 py-0.5 text-xs capitalize ${
+                                statusClass[entry?.access_status]
+                              }`}
+                            >
+                              {entry?.access_status || '-'}
+                            </span>
+                          </td>
+                          <td className="px-3 py-3 opacity-70">{entry?.notes || '-'}</td>
+                          <td className="px-3 py-3 text-center tabular-nums opacity-70">
+                            {timestamp}
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
+
+      <AnimatePresence>
+        {fullscreenCctv ? (
+          <FullscreenCCTVModal
+            dark={dark}
+            camera={fullscreenCctv}
+            onClose={() => setFullscreenCctvId(null)}
+          />
+        ) : null}
+      </AnimatePresence>
+    </>
+  );
+}
+
+function DashboardIconButton({ children, dark, title, onClick, disabled = false }) {
+  return (
+    <button
+      type="button"
+      title={title}
+      onClick={onClick}
+      disabled={disabled}
+      className={`grid h-8 w-8 place-items-center rounded-full transition ${
+        dark ? 'bg-white/6 text-white/75 hover:bg-white/10' : 'bg-blue-100/70 text-blue-900/75 hover:bg-blue-100'
+      } ${disabled ? 'cursor-not-allowed opacity-35' : ''}`}
+    >
+      {children}
+    </button>
   );
 }
 

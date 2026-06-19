@@ -99,7 +99,7 @@ export function useUsers({
           err.message.toLowerCase().includes('resource not found'));
 
       if (isNotFoundError) {
-        throw new Error(KTM_NOT_FOUND_MESSAGE);
+        throw new Error(KTM_NOT_FOUND_MESSAGE, { cause: err });
       }
 
       throw err;

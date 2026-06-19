@@ -1,59 +1,190 @@
-import { ArrowUpRight, Video } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { useMemo, useState } from 'react';
+import { AnimatePresence, motion } from 'motion/react';
+import { Camera, Plus } from 'lucide-react';
 import { useTheme } from '../hooks/useTheme';
+import { useCCTV } from '../hooks/useCCTV';
+import { CCTVStats } from '../components/cctv/CCTVStats';
+import { CCTVToolbar } from '../components/cctv/CCTVToolbar';
+import { CameraFeedCard } from '../components/cctv/CameraFeedCard';
+import { CCTVTable } from '../components/cctv/CCTVTable';
+import { CameraModal } from '../components/cctv/CameraModal';
+import { DeleteCCTVModal } from '../components/cctv/DeleteCCTVModal';
+import { FullscreenCCTVModal } from '../components/cctv/FullscreenCCTVModal';
 import { glass } from '../utils/glass';
 
 export default function CCTVPage() {
   const { dark } = useTheme();
-  const openFullscreen = () => {
-    if (!cctvUrl) return;
-    window.open(cctvUrl, '_blank', 'noopener,noreferrer');
+  const { cameras, loading, error, createCamera, updateCamera, deleteCamera } = useCCTV();
+  const [tab, setTab] = useState('monitor');
+  const [layout, setLayout] = useState(3);
+  const [query, setQuery] = useState('');
+  const [modal, setModal] = useState(null);
+  const [fullscreenCamera, setFullscreenCamera] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
+
+  const filteredCameras = useMemo(() => {
+    const needle = query.trim().toLowerCase();
+    if (!needle) return cameras;
+
+    return cameras.filter((cameraItem) =>
+      [cameraItem.camera_name, cameraItem.path, cameraItem.stream_url]
+        .filter(Boolean)
+        .some((value) => value.toLowerCase().includes(needle)),
+    );
+  }, [cameras, query]);
+
+  const onlineCount = cameras.filter((cameraItem) => cameraItem.is_active).length;
+  const offlineCount = cameras.length - onlineCount;
+
+  const gridCols =
+    layout === 2
+      ? 'grid-cols-1 sm:grid-cols-2'
+      : layout === 3
+        ? 'grid-cols-1 sm:grid-cols-2 xl:grid-cols-3'
+        : 'grid-cols-1 sm:grid-cols-2 xl:grid-cols-4';
+
+  const saveCamera = async (payload) => {
+    if (modal?.type === 'edit') {
+      return updateCamera(modal.camera.id, payload);
+    }
+
+    return createCamera(payload);
   };
-  const cctvUrl = import.meta.env.VITE_API_CCTV_URL;
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+
+    setDeleteError('');
+    setDeleteLoading(true);
+    try {
+      await deleteCamera(deleteTarget.id);
+      setDeleteTarget(null);
+    } catch (err) {
+      setDeleteError(err?.message || 'Gagal menghapus kamera.');
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
 
   return (
-    <div className="space-y-2">
-      <div className={glass(dark, 'overflow-hidden lg:col-span-2')}>
-        <div className="relative aspect-video w-full overflow-hidden bg-[radial-gradient(circle_at_30%_30%,#1f2937,#000)]">
-          {cctvUrl ? (
-            <iframe
-              title="CCTV Feed"
-              src={cctvUrl}
-              className="absolute inset-0 h-full w-full"
-              allow="autoplay; encrypted-media"
-              referrerPolicy="no-referrer"
-            />
-          ) : null}
-          <div
-            className="absolute inset-0 opacity-30"
-            style={{
-              backgroundImage:
-                'repeating-linear-gradient(0deg, rgba(255,255,255,0.05) 0 1px, transparent 1px 4px)',
-            }}
-          />
-          <div className="absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-red-600/90 px-2 py-0.5 text-[10px] uppercase tracking-wider text-white">
-            <motion.span
-              className="h-1.5 w-1.5 rounded-full bg-white"
-              animate={{ opacity: [1, 0.2, 1] }}
-              transition={{ duration: 1, repeat: Infinity }}
-            />
-            Live
+    <>
+      <div className="space-y-6">
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <p className="text-sm opacity-60">{cameras.length} kamera terdaftar</p>
           </div>
-          <div className="absolute bottom-3 left-3 flex items-center gap-1.5 text-xs text-white">
-            <Video className="h-3.5 w-3.5" /> CAM-01 · Main Gate
-          </div>
-        </div>
-        <div className="flex items-center justify-between px-5 py-3">
-          <p className="text-[11px] uppercase tracking-widest opacity-60">Live Camera</p>
           <button
-            onClick={openFullscreen}
-            disabled={!cctvUrl}
-            className="flex items-center gap-1 text-xs text-blue-500 hover:underline disabled:cursor-not-allowed disabled:opacity-50"
+            type="button"
+            onClick={() => setModal({ type: 'add' })}
+            className="flex items-center gap-2 rounded-xl bg-linear-to-r from-blue-600 to-indigo-600 px-4 py-2.5 text-sm text-white shadow-lg shadow-blue-500/30 transition-shadow hover:shadow-blue-500/45"
           >
-            Fullscreen <ArrowUpRight className="h-3 w-3" />
+            <Plus className="h-4 w-4" />
+            Tambah Kamera
           </button>
         </div>
+
+        <CCTVStats dark={dark} onlineCount={onlineCount} offlineCount={offlineCount} />
+
+        <CCTVToolbar
+          dark={dark}
+          tab={tab}
+          onTabChange={setTab}
+          query={query}
+          onQueryChange={setQuery}
+          layout={layout}
+          onLayoutChange={setLayout}
+        />
+
+        {tab === 'monitor' ? (
+          <motion.div layout className={`grid gap-4 ${gridCols}`}>
+            <AnimatePresence mode="popLayout">
+              {!loading &&
+                !error &&
+                filteredCameras.map((cameraItem) => (
+                  <CameraFeedCard
+                    key={cameraItem.id}
+                    camera={cameraItem}
+                    dark={dark}
+                    onEdit={(selected) => setModal({ type: 'edit', camera: selected })}
+                    onDelete={setDeleteTarget}
+                    onFullscreen={setFullscreenCamera}
+                  />
+                ))}
+            </AnimatePresence>
+
+            {loading ? (
+              <div className={glass(dark, 'col-span-full py-16 text-center text-sm opacity-60')}>
+                Memuat kamera...
+              </div>
+            ) : null}
+
+            {error ? (
+              <div className={glass(dark, 'col-span-full py-16 text-center text-sm text-red-500')}>
+                {error}
+              </div>
+            ) : null}
+
+            {!loading && !error && filteredCameras.length === 0 ? (
+              <div
+                className={glass(
+                  dark,
+                  'col-span-full flex flex-col items-center gap-3 py-16 opacity-40',
+                )}
+              >
+                <Camera className="h-10 w-10" />
+                <p className="text-sm">Tidak ada kamera ditemukan.</p>
+              </div>
+            ) : null}
+          </motion.div>
+        ) : (
+          <CCTVTable
+            dark={dark}
+            cameras={filteredCameras}
+            loading={loading}
+            error={error}
+            onEdit={(selected) => setModal({ type: 'edit', camera: selected })}
+            onDelete={setDeleteTarget}
+          />
+        )}
       </div>
-    </div>
+
+      <AnimatePresence>
+        {modal ? (
+          <CameraModal
+            dark={dark}
+            open={Boolean(modal)}
+            camera={modal.type === 'edit' ? modal.camera : null}
+            onClose={() => setModal(null)}
+            onSave={saveCamera}
+          />
+        ) : null}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {deleteTarget ? (
+          <DeleteCCTVModal
+            dark={dark}
+            open={Boolean(deleteTarget)}
+            camera={deleteTarget}
+            onClose={() => setDeleteTarget(null)}
+            onConfirm={confirmDelete}
+            loading={deleteLoading}
+            error={deleteError}
+          />
+        ) : null}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {fullscreenCamera ? (
+          <FullscreenCCTVModal
+            dark={dark}
+            camera={fullscreenCamera}
+            onClose={() => setFullscreenCamera(null)}
+          />
+        ) : null}
+      </AnimatePresence>
+    </>
   );
 }

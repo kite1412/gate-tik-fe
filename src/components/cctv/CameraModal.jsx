@@ -1,0 +1,154 @@
+import { useEffect, useState } from 'react';
+import { Check, Link, X } from 'lucide-react';
+import { Modal } from '../users/Modal';
+
+const emptyForm = {
+  camera_name: '',
+  path: '',
+  stream_url: '',
+  is_active: true,
+};
+
+export function CameraModal({ dark, open, camera, onClose, onSave }) {
+  const isEdit = Boolean(camera);
+  const [form, setForm] = useState(emptyForm);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (!open) return;
+    const timer = setTimeout(() => {
+      setForm({
+        camera_name: camera?.camera_name || '',
+        path: camera?.path || '',
+        stream_url: camera?.stream_url || '',
+        is_active: camera?.is_active ?? true,
+      });
+      setError('');
+    }, 0);
+
+    return () => clearTimeout(timer);
+  }, [camera, open]);
+
+  if (!open) return null;
+
+  const inputClass = `w-full rounded-xl border px-3 py-2 text-sm outline-none ${
+    dark
+      ? 'border-white/10 bg-white/5 text-white placeholder:text-white/30'
+      : 'border-slate-200 bg-white/90 text-slate-900 placeholder:text-slate-400'
+  }`;
+
+  const submit = async (event) => {
+    event.preventDefault();
+    setError('');
+    setSubmitting(true);
+    try {
+      await onSave(form);
+      onClose();
+    } catch (err) {
+      setError(err?.message || 'Gagal menyimpan kamera.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <Modal onClose={onClose}>
+      <div className={glass(dark, 'w-full max-w-md p-6')}>
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="tracking-tight">{isEdit ? 'Ubah Kamera' : 'Tambah Kamera'}</h2>
+            <p className="text-sm opacity-60">
+              {isEdit ? `Editing: ${camera.camera_name}` : 'Tambah kamera baru ke sistem'}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className={`grid h-8 w-8 place-items-center rounded-lg border ${
+              dark ? 'border-white/10 bg-white/5' : 'border-slate-200/80 bg-white/85'
+            }`}
+            aria-label="Tutup"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        {error ? <p className="mt-3 text-sm text-red-500">{error}</p> : null}
+
+        <form onSubmit={submit} className="mt-5 space-y-4">
+          <Field label="Camera Name">
+            <input
+              value={form.camera_name}
+              onChange={(event) =>
+                setForm((prev) => ({ ...prev, camera_name: event.target.value }))
+              }
+              placeholder="e.g. Main Gate Camera"
+              className={inputClass}
+              required
+            />
+          </Field>
+
+          <Field label="Path">
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm opacity-40">/</span>
+              <input
+                value={form.path}
+                onChange={(event) => setForm((prev) => ({ ...prev, path: event.target.value }))}
+                placeholder="e.g. gate1"
+                className={`${inputClass} pl-6`}
+              />
+            </div>
+            <p className="mt-1.5 text-[11px] opacity-40">
+              Path MediaMTX untuk stream, misalnya gate1 atau intercom.
+            </p>
+          </Field>
+
+          <Field label="Stream URL">
+            <div className="relative">
+              <Link className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 opacity-40" />
+              <input
+                value={form.stream_url}
+                onChange={(event) =>
+                  setForm((prev) => ({ ...prev, stream_url: event.target.value }))
+                }
+                placeholder="rtsp://... atau http://..."
+                className={`${inputClass} pl-8`}
+                required
+              />
+            </div>
+            <p className="mt-1.5 text-[11px] opacity-40">
+              URL RTSP/HTTP yang disimpan di backend.
+            </p>
+          </Field>
+
+          <button
+            type="submit"
+            disabled={submitting || !form.camera_name.trim() || !form.stream_url.trim()}
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-linear-to-r from-blue-600 to-indigo-600 px-4 py-2.5 text-sm text-white shadow-lg shadow-blue-500/30 disabled:cursor-not-allowed disabled:opacity-70"
+          >
+            <Check className="h-4 w-4" />
+            {submitting ? 'Menyimpan...' : isEdit ? 'Simpan Perubahan' : 'Tambah Kamera'}
+          </button>
+        </form>
+      </div>
+    </Modal>
+  );
+}
+
+function Field({ label, children }) {
+  return (
+    <label className="flex flex-col gap-1 space-y-1 text-sm">
+      <span className="pl-1 text-xs uppercase tracking-widest opacity-60">{label}</span>
+      {children}
+    </label>
+  );
+}
+
+function glass(dark, extra = '') {
+  return `rounded-2xl border  ${
+    dark
+      ? 'border-white/10 bg-[#071230]/60 backdrop-blur-sm shadow-[0_18px_45px_-18px_rgba(15,23,42,0.35)]'
+      : 'border-white/75 bg-white/50 backdrop-blur-sm shadow-[0_18px_45px_-18px_rgba(15,23,42,0.35)]'
+  } ${extra}`;
+}

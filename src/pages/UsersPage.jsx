@@ -204,7 +204,7 @@ export default function UsersPage() {
                 disabled={currentPage === totalPages}
                 className={paginationButton(dark)}
               >
-                <ChevronLeft className="h-4 w-4 rotate-180" />
+                <ChevronRight className="h-4 w-4" />
               </button>
               <button
                 onClick={() => setPage(totalPages)}
