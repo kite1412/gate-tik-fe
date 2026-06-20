@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Check, Link, X } from 'lucide-react';
 import { Modal } from '../users/Modal';
+import { CCTV_TYPES, formatCctvType, normalizeCctvType } from '../../utils/cctv';
 
 const emptyForm = {
   camera_name: '',
   path: '',
   stream_url: '',
-  is_active: true,
+  type: 'monitor',
 };
 
 export function CameraModal({ dark, open, camera, onClose, onSave }) {
@@ -22,7 +23,7 @@ export function CameraModal({ dark, open, camera, onClose, onSave }) {
         camera_name: camera?.camera_name || '',
         path: camera?.path || '',
         stream_url: camera?.stream_url || '',
-        is_active: camera?.is_active ?? true,
+        type: normalizeCctvType(camera?.type),
       });
       setError('');
     }, 0);
@@ -122,6 +123,41 @@ export function CameraModal({ dark, open, camera, onClose, onSave }) {
             </p>
           </Field>
 
+          <Field label="Tipe">
+            <div className="grid grid-cols-2 gap-2">
+              {CCTV_TYPES.map((type) => {
+                const checked = form.type === type;
+
+                return (
+                  <label
+                    key={type}
+                    className={`flex cursor-pointer items-center gap-2 rounded-xl border px-3 py-2 text-sm transition ${
+                      checked
+                        ? dark
+                          ? 'border-blue-400/60 bg-blue-500/15 text-blue-100'
+                          : 'border-blue-500/60 bg-blue-50 text-blue-700'
+                        : dark
+                          ? 'border-white/10 bg-white/5 text-white/70 hover:bg-white/8'
+                          : 'border-slate-200 bg-white/80 text-slate-700 hover:bg-blue-50/50'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="type"
+                      value={type}
+                      checked={checked}
+                      onChange={(event) =>
+                        setForm((prev) => ({ ...prev, type: event.target.value }))
+                      }
+                      className="h-4 w-4 accent-blue-600"
+                    />
+                    <span>{formatCctvType(type)}</span>
+                  </label>
+                );
+              })}
+            </div>
+          </Field>
+
           <button
             type="submit"
             disabled={submitting || !form.camera_name.trim() || !form.stream_url.trim()}
@@ -138,10 +174,10 @@ export function CameraModal({ dark, open, camera, onClose, onSave }) {
 
 function Field({ label, children }) {
   return (
-    <label className="flex flex-col gap-1 space-y-1 text-sm">
+    <div className="flex flex-col gap-1 space-y-1 text-sm">
       <span className="pl-1 text-xs uppercase tracking-widest opacity-60">{label}</span>
       {children}
-    </label>
+    </div>
   );
 }
 

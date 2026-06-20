@@ -1,12 +1,12 @@
 import { Camera, Maximize2, Settings, Trash2, WifiOff } from 'lucide-react';
 import { motion } from 'motion/react';
 import { glass } from '../../utils/glass';
-import { buildCctvFeedUrl } from '../../utils/cctv';
+import { buildCctvFeedUrl, formatCctvType } from '../../utils/cctv';
+import { CCTVFeedFrame } from './CCTVFeedFrame';
 
 export function CameraFeedCard({ camera, dark, onEdit, onDelete, onFullscreen }) {
-  const isOffline = !camera.is_active;
-  const feedUrl = buildCctvFeedUrl(camera.path);
-  const canPreview = !isOffline && Boolean(feedUrl);
+  const feedUrl = buildCctvFeedUrl(camera);
+  const canPreview = Boolean(feedUrl);
 
   return (
     <motion.div
@@ -25,12 +25,11 @@ export function CameraFeedCard({ camera, dark, onEdit, onDelete, onFullscreen })
         onClick={() => canPreview && onFullscreen(camera)}
       >
         {canPreview ? (
-          <iframe
+          <CCTVFeedFrame
             title={`CCTV ${camera.camera_name}`}
             src={feedUrl}
-            className="pointer-events-none absolute inset-0 h-full w-full border-0"
-            allow="autoplay; encrypted-media"
-            referrerPolicy="no-referrer"
+            className="pointer-events-none"
+            interactive={false}
           />
         ) : null}
 
@@ -46,7 +45,7 @@ export function CameraFeedCard({ camera, dark, onEdit, onDelete, onFullscreen })
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/15">
             <WifiOff className="h-8 w-8 text-white/35" />
             <span className="text-xs uppercase tracking-widest text-white/40">
-              {isOffline ? 'No Signal' : 'Feed Belum Diatur'}
+              Feed Belum Diatur
             </span>
           </div>
         ) : null}
@@ -96,15 +95,11 @@ export function CameraFeedCard({ camera, dark, onEdit, onDelete, onFullscreen })
         }`}
       >
         <div className="flex min-w-0 items-center gap-2">
-          <Camera
-            className={`h-3.5 w-3.5 shrink-0 ${isOffline ? 'opacity-30' : 'text-blue-400'}`}
-          />
+          <Camera className="h-3.5 w-3.5 shrink-0 text-blue-400" />
           <div className="min-w-0">
             <p className="truncate text-xs font-medium leading-tight">{camera.camera_name}</p>
             <p
-              className={`mt-0.5 truncate text-[10px] ${
-                dark ? 'text-white/35' : 'text-slate-400'
-              }`}
+              className={`mt-0.5 truncate text-[10px] ${dark ? 'text-white/35' : 'text-slate-400'}`}
             >
               {camera.path ? `/${camera.path}` : '-'}
             </p>
@@ -112,15 +107,17 @@ export function CameraFeedCard({ camera, dark, onEdit, onDelete, onFullscreen })
         </div>
         <span
           className={`ml-3 flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[10px] ${
-            isOffline ? 'bg-slate-500/20 text-slate-400' : 'bg-emerald-500/20 text-emerald-400'
+            camera.type === 'intercom'
+              ? 'bg-amber-500/20 text-amber-400'
+              : 'bg-blue-500/20 text-blue-400'
           }`}
         >
           <span
             className={`h-1.5 w-1.5 rounded-full ${
-              isOffline ? 'bg-slate-400' : 'bg-emerald-400'
+              camera.type === 'intercom' ? 'bg-amber-400' : 'bg-blue-400'
             }`}
           />
-          {isOffline ? 'offline' : 'online'}
+          {formatCctvType(camera.type)}
         </span>
       </div>
     </motion.div>

@@ -2,12 +2,13 @@ import { X } from 'lucide-react';
 import { motion } from 'motion/react';
 import { glass } from '../../utils/glass';
 import { buildCctvFeedUrl, truncateText } from '../../utils/cctv';
+import { CCTVFeedFrame } from './CCTVFeedFrame';
 
 export function FullscreenCCTVModal({ dark, camera, onClose }) {
   if (!camera) return null;
 
-  const feedUrl = buildCctvFeedUrl(camera.path);
-  const canPreview = camera.is_active && Boolean(feedUrl);
+  const feedUrl = buildCctvFeedUrl(camera);
+  const canPreview = Boolean(feedUrl);
 
   return (
     <motion.div
@@ -34,16 +35,13 @@ export function FullscreenCCTVModal({ dark, camera, onClose }) {
           }}
         >
           {canPreview ? (
-            <iframe
+            <CCTVFeedFrame
               title={`CCTV ${camera.camera_name}`}
               src={feedUrl}
-              className="absolute inset-0 h-full w-full border-0"
-              allow="autoplay; encrypted-media"
-              referrerPolicy="no-referrer"
             />
           ) : (
             <div className="absolute inset-0 flex items-center justify-center text-sm uppercase tracking-widest text-white/40">
-              {camera.is_active ? 'Feed Belum Diatur' : 'No Signal'}
+              {feedUrl ? 'Feed Tidak Dapat Ditampilkan' : 'Feed Belum Diatur'}
             </div>
           )}
 

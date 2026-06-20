@@ -3,7 +3,6 @@ import { AnimatePresence, motion } from 'motion/react';
 import { Camera, Plus } from 'lucide-react';
 import { useTheme } from '../hooks/useTheme';
 import { useCCTV } from '../hooks/useCCTV';
-import { CCTVStats } from '../components/cctv/CCTVStats';
 import { CCTVToolbar } from '../components/cctv/CCTVToolbar';
 import { CameraFeedCard } from '../components/cctv/CameraFeedCard';
 import { CCTVTable } from '../components/cctv/CCTVTable';
@@ -29,14 +28,11 @@ export default function CCTVPage() {
     if (!needle) return cameras;
 
     return cameras.filter((cameraItem) =>
-      [cameraItem.camera_name, cameraItem.path, cameraItem.stream_url]
+      [cameraItem.camera_name, cameraItem.path, cameraItem.stream_url, cameraItem.type]
         .filter(Boolean)
         .some((value) => value.toLowerCase().includes(needle)),
     );
   }, [cameras, query]);
-
-  const onlineCount = cameras.filter((cameraItem) => cameraItem.is_active).length;
-  const offlineCount = cameras.length - onlineCount;
 
   const gridCols =
     layout === 2
@@ -84,8 +80,6 @@ export default function CCTVPage() {
             Tambah Kamera
           </button>
         </div>
-
-        <CCTVStats dark={dark} onlineCount={onlineCount} offlineCount={offlineCount} />
 
         <CCTVToolbar
           dark={dark}

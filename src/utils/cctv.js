@@ -7,8 +7,25 @@ export const CCTV_GRADIENTS = [
   ['#2a1a0a', '#4a3010'],
 ];
 
+export const CCTV_TYPES = ['monitor', 'intercom'];
+
+export const CCTV_TYPE_LABELS = {
+  monitor: 'Monitor',
+  intercom: 'Interkom',
+};
+
 export function normalizePath(path = '') {
-  return String(path || '').trim().replace(/^\/+|\/+$/g, '');
+  return String(path || '')
+    .trim()
+    .replace(/^\/+|\/+$/g, '');
+}
+
+export function normalizeCctvType(type = 'monitor') {
+  return CCTV_TYPES.includes(type) ? type : 'monitor';
+}
+
+export function formatCctvType(type = 'monitor') {
+  return CCTV_TYPE_LABELS[normalizeCctvType(type)];
 }
 
 export function normalizeCctvItem(item = {}, index = 0) {
@@ -17,7 +34,7 @@ export function normalizeCctvItem(item = {}, index = 0) {
     camera_name: item.camera_name || '',
     path: normalizePath(item.path),
     stream_url: item.stream_url || '',
-    is_active: Boolean(item.is_active),
+    type: normalizeCctvType(item.type),
     created_at: item.created_at ?? null,
     updated_at: item.updated_at ?? null,
     _gradient: CCTV_GRADIENTS[index % CCTV_GRADIENTS.length],
@@ -29,25 +46,25 @@ export function toCctvPayload(form = {}) {
     camera_name: String(form.camera_name || '').trim(),
     path: normalizePath(form.path),
     stream_url: String(form.stream_url || '').trim(),
-    is_active: Boolean(form.is_active),
+    type: normalizeCctvType(form.type),
   };
 }
 
-export function buildCctvFeedUrl(path = '') {
-  const rawBase = import.meta.env.VITE_API_CCTV_URL || '';
-  const normalizedPath = normalizePath(path);
+export function buildCctvFeedUrl(cameraOrPath = '') {
+  const rawBase = import.meta.env.VITE_GO2RTC_URL || '';
+  const camera =
+    typeof cameraOrPath === 'object' ? cameraOrPath : { path: cameraOrPath, type: 'monitor' };
 
-  if (!rawBase) return '';
+  const path = normalizePath(camera.path);
+  if (!rawBase || !path) return '';
 
-  const trimmedBase = rawBase.replace(/\/+$/, '');
-  if (!normalizedPath) return trimmedBase;
+  const base = rawBase.replace(/\/+$/, '');
 
-  try {
-    const parsed = new URL(trimmedBase);
-    return `${parsed.origin}/${normalizedPath}`;
-  } catch {
-    return `${trimmedBase}/${normalizedPath}`;
+  if (camera.type === 'intercom') {
+    return `${base}/webrtc.html?src=${encodeURIComponent(path)}&media=video+audio+microphone`;
   }
+
+  return `${base}/stream.html?src=${encodeURIComponent(path)}&mode=webrtc`;
 }
 
 export function truncateText(text = '', max = 42) {

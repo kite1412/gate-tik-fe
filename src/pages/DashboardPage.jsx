@@ -38,6 +38,7 @@ import { useUsers } from '../hooks/useUsers';
 import { formatDate } from '../utils/formatDate';
 import { buildCctvFeedUrl } from '../utils/cctv';
 import { glass } from '../utils/glass';
+import { CCTVFeedFrame } from '../components/cctv/CCTVFeedFrame';
 import { FullscreenCCTVModal } from '../components/cctv/FullscreenCCTVModal';
 import { LoadingIndicator } from '../components/LoadingIndicator';
 
@@ -176,17 +177,15 @@ export default function DashboardPage() {
   }, [cctvCameras]);
 
   const activeCctvIndex = sortedCctvs.findIndex((camera) => camera.id === activeCctvId);
-  const activeCctv =
-    activeCctvIndex >= 0 ? sortedCctvs[activeCctvIndex] : sortedCctvs[0] ?? null;
+  const activeCctv = activeCctvIndex >= 0 ? sortedCctvs[activeCctvIndex] : (sortedCctvs[0] ?? null);
   const fullscreenCctv =
     fullscreenCctvId !== null
-      ? sortedCctvs.find((camera) => camera.id === fullscreenCctvId) ?? null
+      ? (sortedCctvs.find((camera) => camera.id === fullscreenCctvId) ?? null)
       : null;
-  const activeCctvFeedUrl = activeCctv ? buildCctvFeedUrl(activeCctv.path) : '';
-  const canPreviewActiveCctv = Boolean(activeCctv?.is_active && activeCctvFeedUrl);
+  const activeCctvFeedUrl = activeCctv ? buildCctvFeedUrl(activeCctv) : '';
+  const canPreviewActiveCctv = Boolean(activeCctvFeedUrl);
   const canGoPreviousCctv = activeCctvIndex > 0;
-  const canGoNextCctv =
-    activeCctvIndex >= 0 && activeCctvIndex < sortedCctvs.length - 1;
+  const canGoNextCctv = activeCctvIndex >= 0 && activeCctvIndex < sortedCctvs.length - 1;
 
   const lastOpenedText = lastOpened?.created_at
     ? `Terakhir diakses ${formatDistanceToNow(new Date(lastOpened.created_at), {
@@ -357,19 +356,14 @@ export default function DashboardPage() {
                   {cctvError}
                 </div>
               ) : canPreviewActiveCctv ? (
-                <iframe
+                <CCTVFeedFrame
                   title={`CCTV ${activeCctv.camera_name}`}
                   src={activeCctvFeedUrl}
-                  className="absolute inset-0 h-full w-full border-0"
-                  allow="autoplay; encrypted-media"
-                  referrerPolicy="no-referrer"
                 />
               ) : (
                 <div className="absolute inset-0 flex items-center justify-center px-6 text-center text-sm uppercase tracking-widest text-white/40">
                   {activeCctv
-                    ? activeCctv.is_active
-                      ? 'Feed Belum Diatur'
-                      : 'No Signal'
+                    ? 'Feed Belum Diatur'
                     : 'Belum Ada Kamera'}
                 </div>
               )}
@@ -379,7 +373,7 @@ export default function DashboardPage() {
               <div className="flex min-w-0 items-center gap-2">
                 <Video
                   className={`h-3.5 w-3.5 shrink-0 ${
-                    activeCctv?.is_active ? 'text-blue-400' : 'opacity-30'
+                    canPreviewActiveCctv ? 'text-blue-400' : 'opacity-30'
                   }`}
                 />
                 <div className="min-w-0">
@@ -669,7 +663,9 @@ export default function DashboardPage() {
                           <td className="px-3 py-3 capitalize opacity-70">
                             {entry?.user?.role || '-'}
                           </td>
-                          <td className="px-3 py-3 capitalize opacity-70">{entry?.action || '-'}</td>
+                          <td className="px-3 py-3 capitalize opacity-70">
+                            {entry?.action || '-'}
+                          </td>
                           <td className="px-3 py-3 capitalize opacity-70">
                             {entry?.access_method || '-'}
                           </td>
@@ -718,7 +714,9 @@ function DashboardIconButton({ children, dark, title, onClick, disabled = false 
       onClick={onClick}
       disabled={disabled}
       className={`grid h-8 w-8 place-items-center rounded-full transition ${
-        dark ? 'bg-white/6 text-white/75 hover:bg-white/10' : 'bg-blue-100/70 text-blue-900/75 hover:bg-blue-100'
+        dark
+          ? 'bg-white/6 text-white/75 hover:bg-white/10'
+          : 'bg-blue-100/70 text-blue-900/75 hover:bg-blue-100'
       } ${disabled ? 'cursor-not-allowed opacity-35' : ''}`}
     >
       {children}

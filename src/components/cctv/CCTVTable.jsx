@@ -2,7 +2,7 @@ import { Camera, Edit2, Trash2 } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 import { LoadingIndicator } from '../LoadingIndicator';
 import { glass } from '../../utils/glass';
-import { formatShortDate, truncateText } from '../../utils/cctv';
+import { formatCctvType, formatShortDate, truncateText } from '../../utils/cctv';
 
 export function CCTVTable({ dark, cameras, loading, error, onEdit, onDelete }) {
   return (
@@ -16,9 +16,9 @@ export function CCTVTable({ dark, cameras, loading, error, onEdit, onDelete }) {
           >
             <tr className="text-[11px] uppercase tracking-wider">
               <th className="px-5 py-3 font-normal">Kamera</th>
+              <th className="px-5 py-3 font-normal">Tipe</th>
               <th className="px-5 py-3 font-normal">Path</th>
               <th className="px-5 py-3 font-normal">Stream URL</th>
-              <th className="px-5 py-3 font-normal">Status</th>
               <th className="px-5 py-3 font-normal">Dibuat</th>
               <th className="px-5 py-3 text-right font-normal">Aksi</th>
             </tr>
@@ -64,6 +64,22 @@ export function CCTVTable({ dark, cameras, loading, error, onEdit, onDelete }) {
                       </div>
                     </td>
                     <td className="px-5 py-3">
+                      <span
+                        className={`flex w-fit items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] ${
+                          camera.type === 'intercom'
+                            ? 'bg-amber-500/20 text-amber-500'
+                            : 'bg-blue-500/15 text-blue-500'
+                        }`}
+                      >
+                        <span
+                          className={`h-1.5 w-1.5 rounded-full ${
+                            camera.type === 'intercom' ? 'bg-amber-400' : 'bg-blue-400'
+                          }`}
+                        />
+                        {formatCctvType(camera.type)}
+                      </span>
+                    </td>
+                    <td className="px-5 py-3">
                       <code
                         className={`rounded-md px-2 py-0.5 text-xs ${
                           dark ? 'bg-white/5 text-blue-300' : 'bg-blue-50 text-blue-700'
@@ -76,22 +92,6 @@ export function CCTVTable({ dark, cameras, loading, error, onEdit, onDelete }) {
                       <p className="font-mono text-xs opacity-60" title={camera.stream_url}>
                         {truncateText(camera.stream_url, 48)}
                       </p>
-                    </td>
-                    <td className="px-5 py-3">
-                      <span
-                        className={`flex w-fit items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] ${
-                          camera.is_active
-                            ? 'bg-emerald-500/20 text-emerald-400'
-                            : 'bg-slate-500/20 text-slate-400'
-                        }`}
-                      >
-                        <span
-                          className={`h-1.5 w-1.5 rounded-full ${
-                            camera.is_active ? 'bg-emerald-400' : 'bg-slate-400'
-                          }`}
-                        />
-                        {camera.is_active ? 'online' : 'offline'}
-                      </span>
                     </td>
                     <td className="px-5 py-3 text-xs tabular-nums opacity-50">
                       {formatShortDate(camera.created_at)}
