@@ -356,15 +356,10 @@ export default function DashboardPage() {
                   {cctvError}
                 </div>
               ) : canPreviewActiveCctv ? (
-                <CCTVFeedFrame
-                  title={`CCTV ${activeCctv.camera_name}`}
-                  src={activeCctvFeedUrl}
-                />
+                <CCTVFeedFrame title={`CCTV ${activeCctv.camera_name}`} src={activeCctvFeedUrl} />
               ) : (
                 <div className="absolute inset-0 flex items-center justify-center px-6 text-center text-sm uppercase tracking-widest text-white/40">
-                  {activeCctv
-                    ? 'Feed Belum Diatur'
-                    : 'Belum Ada Kamera'}
+                  {activeCctv ? 'Feed Belum Diatur' : 'Belum Ada Kamera'}
                 </div>
               )}
             </div>

@@ -10,9 +10,7 @@ export function CCTVTable({ dark, cameras, loading, error, onEdit, onDelete }) {
       <div className="overflow-x-auto">
         <table className="w-full min-w-[860px] text-left text-sm">
           <thead
-            className={
-              dark ? 'bg-white/[0.03] text-slate-400' : 'bg-blue-50/60 text-blue-900/60'
-            }
+            className={dark ? 'bg-white/[0.03] text-slate-400' : 'bg-blue-50/60 text-blue-900/60'}
           >
             <tr className="text-[11px] uppercase tracking-wider">
               <th className="px-5 py-3 font-normal">Kamera</th>
