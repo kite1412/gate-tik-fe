@@ -61,7 +61,7 @@ export function buildCctvFeedUrl(cameraOrPath = '') {
   const base = rawBase.replace(/\/+$/, '');
 
   if (camera.type === 'intercom') {
-    return `${base}/webrtc.html?src=${encodeURIComponent(path)}&media=video+audio+microphone`;
+    return `${base}/webrtc.html?src=${encodeURIComponent(path)}&media=video+audio`;
   }
 
   return `${base}/stream.html?src=${encodeURIComponent(path)}&mode=webrtc`;
